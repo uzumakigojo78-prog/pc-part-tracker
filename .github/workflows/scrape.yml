@@ -1,0 +1,53 @@
+name: Scrape
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: scraper/package-lock.json
+      - name: Install
+        working-directory: scraper
+        run: npm ci
+      - name: Test
+        working-directory: scraper
+        run: npx vitest run
+      - name: Scrape
+        working-directory: scraper
+        run: npm run scrape
+        env:
+          BESTBUY_API_KEY: ${{ secrets.BESTBUY_API_KEY }}
+          AMAZON_PAAPI_ACCESS_KEY: ${{ secrets.AMAZON_PAAPI_ACCESS_KEY }}
+          AMAZON_PAAPI_SECRET_KEY: ${{ secrets.AMAZON_PAAPI_SECRET_KEY }}
+          AMAZON_PARTNER_TAG: ${{ secrets.AMAZON_PARTNER_TAG }}
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+      - name: Commit data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain data)" ]; then
+            git add data
+            git commit -m "chore(data): scrape $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git pull --rebase origin main
+            git push
+          fi
+
+  deploy:
+    needs: scrape
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages.yml
