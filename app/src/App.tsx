@@ -11,6 +11,7 @@ import BuilderPage from './features/builder/BuilderPage'
 import WatchlistPage from './features/watchlist/WatchlistPage'
 import SettingsPage from './features/settings/SettingsPage'
 import BackupBanner from './features/settings/BackupBanner'
+import NativeSync from './features/settings/NativeSync'
 
 export function IndexProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<Omit<IndexState, 'refresh' | 'byId'>>({ index: [], fetchedAt: null, stale: false, error: null, loading: true })
@@ -55,6 +56,7 @@ export default function App() {
           ))}
         </nav>
         <BackupBanner />
+        <NativeSync />
         <main>
           <Routes>
             <Route path="/" element={<Navigate to="/search" replace />} />

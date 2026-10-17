@@ -4,8 +4,8 @@ import type { Settings } from '../../lib/db'
 import { parseBackup } from '../../lib/csv'
 import { nextBackupAt } from '../../lib/schedule'
 import { useIndex } from '../../lib/useIndex'
-import { collectBackup, isNative, syncNative } from '../../platform'
-import { runBackup, saveSettings } from './runBackup'
+import { isNative } from '../../platform'
+import { runBackup } from './runBackup'
 
 export default function SettingsPage() {
   const { byId, fetchedAt, refresh } = useIndex()
@@ -13,32 +13,28 @@ export default function SettingsPage() {
   const [toast, setToast] = useState<{ kind: 'status' | 'alert'; text: string } | null>(null)
   const [importErrors, setImportErrors] = useState<string[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
-  const byIdRef = useRef(byId)
-  byIdRef.current = byId
+  const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     const load = () => { void settings.get().then(setS) }
     load()
-    return onChange(() => {
-      load()
-      if (isNative()) void settings.get().then(async (cur) => syncNative(cur, await collectBackup(byIdRef.current)))
-    })
+    return onChange(load)
   }, [])
 
   if (!s) return <div className="page"><h1>Settings</h1></div>
 
-  const update = async (p: Partial<Settings>) => setS(await saveSettings(p))
+  const update = async (p: Partial<Settings>) => await settings.set(p)
   const next = nextBackupAt(s, new Date())
   const nextText = next ? `${isNative() ? 'approximately ' : ''}${next.toLocaleString()}` : 'off'
 
   async function exportNow() {
     setToast(null)
+    setBusy(true)
     try {
       if ((await runBackup(byId)) === 'ok') setToast({ kind: 'status', text: 'Backup saved.' })
     } catch {
       setToast({ kind: 'alert', text: 'Backup failed.' })
-    }
-    setS(await settings.get())
+    } finally { setBusy(false) }
   }
 
   async function importFiles(files: FileList | null) {
@@ -68,7 +64,7 @@ export default function SettingsPage() {
           <input type="time" value={s.backupTime} onChange={(e) => e.target.value && void update({ backupTime: e.target.value })} />
         </label>
         <p>Next backup: {nextText}</p>
-        <button type="button" onClick={() => void exportNow()}>Export now</button>
+        <button type="button" disabled={busy} onClick={() => void exportNow()}>Export now</button>
         <p className={s.lastBackupStatus === 'failed' ? 'rise' : 'muted'}>
           {s.lastBackupStatus === 'failed' ? 'Last backup failed' : s.lastBackupAt ? `Last backup: ${new Date(s.lastBackupAt).toLocaleString()}` : 'No backup yet'}
         </p>

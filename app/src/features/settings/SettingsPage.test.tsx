@@ -100,6 +100,18 @@ describe('SettingsPage', () => {
     expect((await builds.all()).map(b => b.name)).toEqual(['Mine'])
   })
 
+  it('Export now is disabled while running', async () => {
+    let release!: () => void
+    vi.mocked(platform.saveBackup).mockReturnValue(new Promise((r) => { release = () => r('downloaded') }))
+    renderPage()
+    const btn = await screen.findByRole('button', { name: 'Export now' }) as HTMLButtonElement
+    await userEvent.click(btn)
+    await waitFor(() => expect(btn.disabled).toBe(true))
+    release()
+    await waitFor(() => expect(btn.disabled).toBe(false))
+    expect(platform.saveBackup).toHaveBeenCalledTimes(1)
+  })
+
   it('shows refresh time and Refresh now works', async () => {
     renderPage()
     expect((await screen.findByText(/Data last refreshed/)).textContent).toContain('2026')

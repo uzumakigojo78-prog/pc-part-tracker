@@ -36,7 +36,8 @@ describe('BackupBanner', () => {
   it('hidden when off or not due', async () => {
     await settings.set({ backupFrequency: 'weekly', lastBackupAt: daysAgo(1) })
     renderBanner()
-    await new Promise(r => setTimeout(r, 30))
+    await waitFor(() => expect(settings.get()).resolves.toMatchObject({ backupFrequency: 'weekly' }))
+    await Promise.resolve()
     expect(screen.queryByText(/Backup due/)).toBeNull()
   })
 
@@ -44,7 +45,32 @@ describe('BackupBanner', () => {
     vi.mocked(platform.isNative).mockReturnValue(true)
     await settings.set({ backupFrequency: 'daily', lastBackupAt: daysAgo(5) })
     renderBanner()
-    await new Promise(r => setTimeout(r, 30))
+    await Promise.resolve()
     expect(screen.queryByText(/Backup due/)).toBeNull()
+  })
+
+  it('button is disabled while exporting (no double share)', async () => {
+    let release!: () => void
+    vi.mocked(platform.saveBackup).mockReturnValue(new Promise((r) => { release = () => r('downloaded') }))
+    await settings.set({ backupFrequency: 'daily', lastBackupAt: daysAgo(5) })
+    renderBanner()
+    const btn = await screen.findByRole('button', { name: 'Backup due — Export now' })
+    await userEvent.click(btn)
+    await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(true))
+    await userEvent.click(btn)
+    release()
+    await waitFor(() => expect(screen.queryByText(/Backup due/)).toBeNull())
+    expect(platform.saveBackup).toHaveBeenCalledTimes(1)
+  })
+
+  it('appears when the app becomes visible and a backup is due', async () => {
+    await settings.set({ backupFrequency: 'daily', lastBackupAt: new Date().toISOString() })
+    renderBanner()
+    await Promise.resolve()
+    expect(screen.queryByText(/Backup due/)).toBeNull()
+    vi.useFakeTimers({ toFake: ['Date'], now: Date.now() + 3 * 86400000 })
+    document.dispatchEvent(new Event('visibilitychange'))
+    expect(await screen.findByText(/Backup due/)).toBeTruthy()
+    vi.useRealTimers()
   })
 })

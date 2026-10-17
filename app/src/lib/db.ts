@@ -68,6 +68,7 @@ export const settings = {
     const next = { ...cur, ...p }
     await tx.store.put(next, 'settings')
     await tx.done
+    notify()
     return next
   },
 }

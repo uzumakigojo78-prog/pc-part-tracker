@@ -40,7 +40,8 @@ export async function saveBackup(files: BackupFiles, date: string): Promise<'sav
     a.href = url
     a.download = f.name
     a.click()
-    URL.revokeObjectURL(url)
+    setTimeout(() => URL.revokeObjectURL(url), 1000) // revoking immediately can cancel the download
+    if (f !== list[list.length - 1]) await new Promise((r) => setTimeout(r, 300)) // browsers drop rapid multi-downloads
   }
   return 'downloaded'
 }
