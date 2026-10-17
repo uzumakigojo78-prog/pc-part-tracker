@@ -47,7 +47,8 @@ first time: tap **Allow**, or you will only get `watchlist.csv`.
 
 1. **Enable Pages:** repository **Settings → Pages → Source: GitHub Actions**. The
    `Deploy Pages` workflow then publishes the app on every push to `main` and after
-   every scrape.
+   every scrape. Do this before the first push to `main`, or re-run the failed
+   `Deploy Pages` run afterwards.
 2. **Add secrets:** **Settings → Secrets and variables → Actions → New repository
    secret**. Every secret is optional; a missing retailer key just means that
    retailer is skipped.

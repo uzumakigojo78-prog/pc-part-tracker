@@ -8,8 +8,9 @@ android {
         applicationId "io.github.uzumakigojo78_prog.pcparttracker"
         minSdkVersion rootProject.ext.minSdkVersion // 29 (variables.gradle): MediaStore RELATIVE_PATH without storage permissions
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // apk.yml passes -PversionCode=<run number> -PversionName=<tag> so each release installs over the last.
+        versionCode((project.findProperty('versionCode') ?: '1') as Integer)
+        versionName((project.findProperty('versionName') ?: '0.0.0-dev') as String)
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -41,6 +42,8 @@ android {
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+        // background-runner ships its JS engine as a local AAR; the app module must see it too (plugin README).
+        dirs '../../node_modules/@capacitor/background-runner/android/src/main/libs'
     }
 }
 

@@ -4,7 +4,7 @@ import type { Settings } from '../../lib/db'
 import { parseBackup } from '../../lib/csv'
 import { nextBackupAt } from '../../lib/schedule'
 import { useIndex } from '../../lib/useIndex'
-import { isNative, lastNativeBackup } from '../../platform'
+import { isNative, lastNativeBackup, requestNotifications } from '../../platform'
 import type { BackupResult } from '../../platform'
 import { runBackup } from './runBackup'
 
@@ -52,6 +52,7 @@ export default function SettingsPage() {
     if (!parsed.ok) { setImportErrors(parsed.errors); return }
     if (!window.confirm('Replace your watchlist and builds?')) return
     await replaceAll(parsed.watchlist, parsed.builds)
+    if (parsed.watchlist.length) void requestNotifications().catch(() => {}) // imported watches need alert permission too
     setToast({ kind: 'status', text: 'Backup imported.' })
   }
 

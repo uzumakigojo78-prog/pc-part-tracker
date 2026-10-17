@@ -11,7 +11,7 @@ jobs:
     permissions:
       contents: write
     env:
-      # Tag name on tag pushes, short SHA otherwise (workflow_dispatch from a branch).
+      # Tag name on tag pushes, commit SHA otherwise (workflow_dispatch from a branch).
       APK_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
     steps:
       - uses: actions/checkout@v4
@@ -55,13 +55,13 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease -PversionCode=${{ github.run_number }} -PversionName="${APK_VERSION#v}"
           cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/pc-part-tracker-$APK_VERSION.apk"
       - name: Assemble debug APK
         if: steps.keystore.outputs.signed != 'true'
         working-directory: app/android
         run: |
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug -PversionCode=${{ github.run_number }} -PversionName="${APK_VERSION#v}"
           cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/pc-part-tracker-$APK_VERSION-debug.apk"
       - name: Remove keystore
         if: always()

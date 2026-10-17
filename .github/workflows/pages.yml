@@ -8,6 +8,11 @@ on:
       - 'shared/**'
   workflow_dispatch:
   workflow_call:
+    inputs:
+      skip-tests:
+        # scrape.yml sets this so a flaky test never holds back fresh prices; pushes to main still test.
+        type: boolean
+        default: false
 
 concurrency:
   group: pages
@@ -36,9 +41,11 @@ jobs:
         working-directory: app
         run: npm ci
       - name: Test
+        if: ${{ !inputs.skip-tests }}
         working-directory: app
         run: npx vitest run
       - name: E2E smoke tests
+        if: ${{ !inputs.skip-tests }}
         working-directory: app
         # Builds its own dist-e2e/ against fixture data; the deploy build below is separate.
         run: |
