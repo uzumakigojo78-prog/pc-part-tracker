@@ -75,4 +75,18 @@ describe('adapters', () => {
     } finally { console.warn = orig; }
     expect(logs.join('\n')).not.toContain('SECRETKEY');
   });
+  it('ebay reuses the cached token across calls', async () => {
+    let tokens = 0;
+    const f = async (url: string) => url.includes('oauth2/token') ? (tokens++, json('{"access_token":"t","expires_in":7200}')) : json(fx('ebay-item.json'));
+    const a = get('ebay', env, f);
+    await a.fetchOffer(ref('ebay')); await a.fetchOffer(ref('ebay'));
+    expect(tokens).toBe(1);
+  });
+  it('ebay clears the token and retries once on 401', async () => {
+    let tokens = 0, items = 0;
+    const f = async (url: string) => url.includes('oauth2/token') ? (tokens++, json('{"access_token":"t","expires_in":7200}'))
+      : ++items === 1 ? json('', 401) : json(fx('ebay-item.json'));
+    expect((await get('ebay', env, f).fetchOffer(ref('ebay')))!.price).toBe(529);
+    expect(tokens).toBe(2);
+  });
 });

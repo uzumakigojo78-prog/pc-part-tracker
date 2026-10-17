@@ -20,4 +20,12 @@ describe('politeFetch', () => {
     await politeFetch('https://c.test/', undefined, { fetch: f, now: () => 0, sleep: async () => {} });
     expect(ua).toMatch(/^PCPartTrackerBot\/1\.0/);
   });
+  it('concurrent same-host calls end up >= 2000ms apart', async () => {
+    let t = 0; const fired: number[] = [];
+    const f = (async () => { fired.push(t); return new Response('{}'); }) as typeof fetch;
+    const deps = { fetch: f, now: () => t, sleep: async (ms: number) => { t += ms; } };
+    await Promise.all([politeFetch('https://d.test/1', undefined, deps), politeFetch('https://d.test/2', undefined, deps)]);
+    expect(fired).toHaveLength(2);
+    expect(Math.abs(fired[1] - fired[0])).toBeGreaterThanOrEqual(2000);
+  });
 });

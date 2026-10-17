@@ -11,9 +11,10 @@ export async function politeFetch(
 ): Promise<Response> {
   const { fetch: f = fetch, sleep = (ms) => new Promise<void>(r => setTimeout(r, ms)), now = Date.now } = deps;
   const host = new URL(url).host;
-  const last = lastByHost.get(host);
-  if (last !== undefined && now() - last < MIN_GAP_MS) await sleep(MIN_GAP_MS - (now() - last));
-  lastByHost.set(host, now());
+  // Reserve the slot synchronously (before any await) so concurrent callers queue instead of racing.
+  const at = Math.max(now(), (lastByHost.get(host) ?? -Infinity) + MIN_GAP_MS);
+  lastByHost.set(host, at);
+  if (at > now()) await sleep(at - now());
   const headers = new Headers(init?.headers);
   headers.set('User-Agent', USER_AGENT);
   return f(url, { ...init, headers });

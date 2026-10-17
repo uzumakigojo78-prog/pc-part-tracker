@@ -23,11 +23,16 @@ export const ebay = (env: NodeJS.ProcessEnv, f: typeof fetch): RetailerAdapter =
     id: 'ebay',
     enabled: () => !!env.EBAY_CLIENT_ID && !!env.EBAY_CLIENT_SECRET,
     async fetchOffer(ref) {
-      const t = await getToken();
-      if (!t) return null;
-      const res = await f(`https://api.ebay.com/buy/browse/v1/item/${encodeURIComponent(ref.productId)}`,
-        { headers: { Authorization: `Bearer ${t}` } });
-      if (!res.ok) return null;
+      let res: Response | undefined;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const t = await getToken();
+        if (!t) return null;
+        res = await f(`https://api.ebay.com/buy/browse/v1/item/${encodeURIComponent(ref.productId)}`,
+          { headers: { Authorization: `Bearer ${t}` } });
+        if (res.status !== 401) break;
+        token = null; // expired/revoked: refetch once
+      }
+      if (!res?.ok) return null;
       const i = (await res.json()) as any;
       const pct = Number(i.seller?.feedbackPercentage);
       const cond = condition(i.condition);
