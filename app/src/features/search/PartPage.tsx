@@ -6,7 +6,7 @@ import { builds, onChange, watchlist } from '../../lib/db'
 import type { Build, WatchItem } from '../../lib/db'
 import { SLOTS } from '../../lib/build'
 import type { Slot } from '../../lib/build'
-import { CATEGORY_NAMES, RETAILER_NAMES, formatPrice } from '../../lib/format'
+import { CATEGORY_NAMES, RETAILER_NAMES, formatPrice, specLabel, specValue } from '../../lib/format'
 import { useIndex } from '../../lib/useIndex'
 import PriceChart from './PriceChart'
 
@@ -26,6 +26,7 @@ export default function PartPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { byId } = useIndex()
+  const validId = /^[a-z0-9-]+$/.test(id)
   const [part, setPart] = useState<PartDetail | null>(null)
   const [history, setHistory] = useState<HistoryPoint[]>([])
   const [failed, setFailed] = useState(false)
@@ -34,6 +35,7 @@ export default function PartPage() {
   const [added, setAdded] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!validId) return
     let live = true
     setPart(null); setFailed(false); setHistory([])
     fetchJson<PartDetail>(`parts/${id}.json`)
@@ -51,11 +53,13 @@ export default function PartPage() {
   }, [id])
   useEffect(() => { loadWatch(); return onChange(loadWatch) }, [loadWatch])
 
+  if (!validId) return <div className="page"><Link to="/search">← Back to search</Link><h1>Part not found</h1></div>
   if (failed) return <div className="page"><Link to="/search">← Back</Link><p className="card">Couldn't load this part. Check your connection and try again.</p></div>
   if (!part) return <div className="page"><p className="muted">Loading…</p></div>
 
   const entry = byId.get(part.id)
-  const lowest = entry?.lowestPrice ?? null
+  const offerPrices = part.offers.map(o => o.price).filter(p => Number.isFinite(p))
+  const lowest = entry?.lowestPrice ?? (offerPrices.length ? Math.min(...offerPrices) : null)
   const slot = SLOTS.find(s => s === part.category) as Slot | undefined
 
   async function toggleWatch() {
@@ -106,7 +110,7 @@ export default function PartPage() {
       {Object.keys(part.specs).length === 0 ? <p className="muted">No specs listed</p> : (
         <div className="card table-wrap">
           <table><tbody>
-            {Object.entries(part.specs).map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}
+            {Object.entries(part.specs).map(([k, v]) => <tr key={k}><th scope="row">{specLabel(k)}</th><td>{specValue(k, v)}</td></tr>)}
           </tbody></table>
         </div>
       )}

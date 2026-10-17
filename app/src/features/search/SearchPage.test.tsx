@@ -18,7 +18,7 @@ const index: IndexEntry[] = [
 function renderPage(over: Partial<IndexState> = {}, url = '/search') {
   const state: IndexState = {
     index, byId: new Map(index.map(i => [i.id, i])), fetchedAt: '2026-01-01T00:00:00Z',
-    stale: false, error: null, refresh: vi.fn(async () => {}), ...over,
+    stale: false, error: null, loading: false, refresh: vi.fn(async () => {}), ...over,
   }
   render(
     <IndexContext.Provider value={state}>
@@ -52,6 +52,12 @@ describe('SearchPage', () => {
     expect(screen.getByText(/You're offline/)).toBeTruthy()
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }))
     expect(s.refresh).toHaveBeenCalled()
+  })
+
+  it('shows a loading status while the index loads', () => {
+    renderPage({ index: [], byId: new Map(), fetchedAt: null, loading: true })
+    expect(screen.getByRole('status').textContent).toBe('Loading parts…')
+    expect(screen.queryByText('No parts match.')).toBeNull()
   })
 
   it('stale data shows the offline banner', () => {

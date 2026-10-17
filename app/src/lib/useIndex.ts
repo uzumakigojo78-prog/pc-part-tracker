@@ -7,6 +7,7 @@ export interface IndexState {
   fetchedAt: string | null
   stale: boolean
   error: 'offline' | null
+  loading: boolean
   refresh(): Promise<void>
 }
 

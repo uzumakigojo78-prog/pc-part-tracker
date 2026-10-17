@@ -12,7 +12,7 @@ import { useIndex } from '../../lib/useIndex'
 const CATEGORIES = Object.keys(CATEGORY_NAMES) as Category[]
 
 export default function SearchPage() {
-  const { index, stale, fetchedAt, error, refresh } = useIndex()
+  const { index, stale, fetchedAt, error, loading, refresh } = useIndex()
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const pickFor = params.get('pickFor')
@@ -39,7 +39,9 @@ export default function SearchPage() {
       {stale && fetchedAt && (
         <p className="banner" role="status">Offline — showing data from {new Date(fetchedAt).toLocaleString()}</p>
       )}
-      {error === 'offline' && index.length === 0 ? (
+      {loading ? (
+        <p className="muted" role="status">Loading parts…</p>
+      ) : error === 'offline' && index.length === 0 ? (
         <div className="card empty">
           <p>You're offline and there's no saved data yet.</p>
           <button className="btn" onClick={() => void refresh()}>Retry</button>

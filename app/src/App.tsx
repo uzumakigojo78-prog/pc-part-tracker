@@ -9,14 +9,14 @@ import SearchPage from './features/search/SearchPage'
 import PartPage from './features/search/PartPage'
 
 export function IndexProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<Omit<IndexState, 'refresh' | 'byId'>>({ index: [], fetchedAt: null, stale: false, error: null })
+  const [state, setState] = useState<Omit<IndexState, 'refresh' | 'byId'>>({ index: [], fetchedAt: null, stale: false, error: null, loading: true })
 
   const refresh = useCallback(async () => {
     try {
       const r = await fetchJson<IndexEntry[]>('index.json')
-      setState({ index: r.data, fetchedAt: r.fetchedAt, stale: r.stale, error: null })
+      setState({ index: r.data, fetchedAt: r.fetchedAt, stale: r.stale, error: null, loading: false })
     } catch {
-      setState(s => ({ ...s, error: 'offline' }))
+      setState(s => ({ ...s, error: 'offline', loading: false }))
     }
   }, [])
   useEffect(() => { void refresh() }, [refresh])
