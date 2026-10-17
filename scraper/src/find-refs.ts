@@ -16,7 +16,7 @@ export async function findRefs(opts: {
   const candidates: Record<string, Candidate[]> = {};
   for (const part of catalog) {
     if (part.refs.some(r => r.retailer === 'bestbuy')) continue;
-    const words = `${part.brand} ${part.model}`.split(/\s+/).filter(Boolean);
+    const words = `${part.brand} ${part.model}`.split(/[^A-Za-z0-9]+/).filter(Boolean);
     const search = words.map(w => `search=${encodeURIComponent(w)}`).join('&');
     const url = `https://api.bestbuy.com/v1/products((${search}))?apiKey=${env.BESTBUY_API_KEY}`
       + '&format=json&show=sku,name,url&pageSize=3';

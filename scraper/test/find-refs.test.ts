@@ -47,3 +47,15 @@ describe('findRefs', () => {
     expect(logs.join('\n')).toContain('apiKey=REDACTED');
   });
 });
+
+describe('findRefs query words', () => {
+  it('strips punctuation so Best Buy grouping syntax is not broken', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'fr-'));
+    const urls: string[] = [];
+    const f = (async (url: string) => { urls.push(url); return new Response('{"products":[]}'); }) as unknown as typeof fetch;
+    await findRefs({ catalog: [p('x', 'be quiet!', 'Vengeance (2x16GB) Mac mini (M4)')], env: { BESTBUY_API_KEY: 'k' }, fetch: f, outPath: join(dir, 'c.json') });
+    const terms = urls[0].slice(urls[0].indexOf('((') + 2, urls[0].indexOf('))?'));
+    expect(terms).toBe('search=be&search=quiet&search=Vengeance&search=2x16GB&search=Mac&search=mini&search=M4');
+    expect(terms).not.toMatch(/[()!]/);
+  });
+});

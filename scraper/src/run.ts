@@ -28,7 +28,8 @@ export async function run(opts: {
   const index = [];
 
   for (const part of catalog) {
-    const offers: Offer[] = [];
+    let offers: Offer[] = [];
+    let partFailures = 0;
     for (const ref of part.refs) {
       const adapter = adapters.find(a => a.id === ref.retailer);
       if (!adapter || !adapter.enabled()) { counts.skipped++; continue; }
@@ -38,18 +39,33 @@ export async function run(opts: {
         const offer = listing ? toOffer(listing, updatedAt) : null;
         if (offer) { offers.push(offer); counts.succeeded++; }
       } catch (err) {
-        counts.failed++;
+        counts.failed++; partFailures++;
         console.warn(part.id, ref.retailer, (err as Error).message);
       }
     }
-    const { refs: _refs, ...rest } = part;
-    const detail: PartDetail = { ...rest, offers, updatedAt };
-    await writeJson(join(dataDir, 'parts', `${part.id}.json`), detail);
-    if (offers.length > 0) {
-      const hp = join(dataDir, 'history', `${part.id}.json`);
-      await writeJson(hp, appendHistory(await readHistory(hp), offers, date));
+    let entryAt = updatedAt;
+    try {
+      const partPath = join(dataDir, 'parts', `${part.id}.json`);
+      if (partFailures > 0 && offers.length === 0) {
+        // Every fetch threw: keep the previous detail file (and index from it) rather than blanking offers.
+        try {
+          const prev: PartDetail = JSON.parse(await readFile(partPath, 'utf8'));
+          offers = prev.offers; entryAt = prev.updatedAt;
+        } catch { /* no previous file */ }
+      } else {
+        const { refs: _refs, ...rest } = part;
+        const detail: PartDetail = { ...rest, offers, updatedAt };
+        await writeJson(partPath, detail);
+        if (offers.length > 0) {
+          const hp = join(dataDir, 'history', `${part.id}.json`);
+          await writeJson(hp, appendHistory(await readHistory(hp), offers, date));
+        }
+      }
+    } catch (err) {
+      counts.failed++;
+      console.warn(part.id, 'persist', (err as Error).message);
     }
-    index.push(buildIndexEntry(part, offers, updatedAt));
+    index.push(buildIndexEntry(part, offers, entryAt));
   }
   index.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   await writeJson(join(dataDir, 'index.json'), index);

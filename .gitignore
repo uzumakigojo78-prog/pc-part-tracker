@@ -4,3 +4,4 @@ app/android/app/build
 *.keystore
 .env*
 .superpowers/
+scraper/catalog.candidates.json
