@@ -81,6 +81,26 @@ describe('WatchlistPage', () => {
     expect((await watchlist.all())[0].targetPrice).toBe(300)
   })
 
+  it('external target change is not overwritten by stale draft on blur', async () => {
+    await watchlist.put(w('cpu1', 500, 300))
+    renderPage()
+    const input = await screen.findByLabelText('Target price for cpu1') as HTMLInputElement
+    await watchlist.put(w('cpu1', 500, 250))
+    await waitFor(() => expect(input.value).toBe('250'))
+    const put = vi.spyOn(watchlist, 'put')
+    await userEvent.click(input)
+    await userEvent.tab()
+    expect(put).not.toHaveBeenCalled()
+    expect((await watchlist.all())[0].targetPrice).toBe(250)
+  })
+
+  it('untracked model is not a link', async () => {
+    await watchlist.put(w('gone', 10))
+    renderPage()
+    await screen.findByText('No longer tracked')
+    expect(screen.queryByRole('link', { name: 'gone' })).toBeNull()
+  })
+
   it('Remove asks to confirm', async () => {
     await watchlist.put(w('cpu1', 500))
     renderPage()

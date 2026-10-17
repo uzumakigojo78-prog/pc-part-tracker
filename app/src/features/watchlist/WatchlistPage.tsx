@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { onChange, watchlist } from '../../lib/db'
 import type { WatchItem } from '../../lib/db'
@@ -13,6 +13,11 @@ function Row({ w }: { w: WatchItem }) {
   const s = watchStatus(w, byId.get(w.partId))
   const [draft, setDraft] = useState(w.targetPrice === null ? '' : String(w.targetPrice))
   const [error, setError] = useState('')
+  const focused = useRef(false)
+  // Pick up external changes (restore, other tab) unless the user is mid-edit.
+  useEffect(() => {
+    if (!focused.current) { setDraft(w.targetPrice === null ? '' : String(w.targetPrice)); setError('') }
+  }, [w.targetPrice])
 
   async function save() {
     const t = draft.trim()
@@ -30,13 +35,14 @@ function Row({ w }: { w: WatchItem }) {
   return (
     <li className="card row">
       <div className="row-main">
-        <Link to={`/part/${w.partId}`} className="row-title">{w.model}</Link>
+        {s.untracked ? <span className="row-title">{w.model}</span> : <Link to={`/part/${w.partId}`} className="row-title">{w.model}</Link>}
         {s.untracked && <span className="muted">No longer tracked</span>}
         {s.belowTarget && <span className="badge">Target hit</span>}
         <label htmlFor={id} className="muted">Target price</label>
-        <input id={id} aria-label={`Target price for ${w.model}`} inputMode="decimal" value={draft}
+        <input id={id} className="input watch-target" aria-label={`Target price for ${w.model}`} inputMode="decimal" value={draft}
           aria-invalid={error ? true : undefined}
-          onChange={e => setDraft(e.target.value)} onBlur={() => void save()}
+          onChange={e => setDraft(e.target.value)} onFocus={() => { focused.current = true }}
+          onBlur={() => { focused.current = false; void save() }}
           onKeyDown={e => { if (e.key === 'Enter') void save() }} />
         {error && <span role="alert" className="error">{error}</span>}
       </div>
