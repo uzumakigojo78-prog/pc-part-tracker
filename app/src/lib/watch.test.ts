@@ -22,6 +22,11 @@ describe('watchStatus', () => {
     expect(watchStatus(item('x', null, null), entry('x', 450)).change).toBeNull()
     expect(watchStatus(item('x', 500, null), entry('x', null)).changePct).toBeNull()
   })
+  it('priceWhenAdded 0 gives null changePct', () => {
+    const s = watchStatus(item('x', 0, null), entry('x', 10))
+    expect(s.change).toBe(10)
+    expect(s.changePct).toBeNull()
+  })
   it('belowTarget is inclusive', () => {
     expect(watchStatus(item('x', 500, 460), entry('x', 460)).belowTarget).toBe(true)
     expect(watchStatus(item('x', 500, 460), entry('x', 461)).belowTarget).toBe(false)

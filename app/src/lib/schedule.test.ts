@@ -33,3 +33,16 @@ describe('isBackupDue', () => {
     expect(isBackupDue(s({ lastBackupAt: now.toISOString() }), now)).toBe(false)
   })
 })
+
+describe('robustness', () => {
+  it('invalid lastBackupAt acts like null', () => {
+    const st = s({ lastBackupAt: 'garbage' })
+    expect(t(nextBackupAt(st, new Date(2026, 9, 16, 10)))).toBe(new Date(2026, 9, 16, 9, 0).getTime())
+    expect(isBackupDue(st, new Date(2026, 9, 16, 10))).toBe(true)
+  })
+  it('malformed backupTime falls back to 09:00', () => {
+    for (const bt of ['25:00', '', '9:60', 'abc']) {
+      expect(t(nextBackupAt(s({ backupTime: bt }), new Date(2026, 9, 16, 10)))).toBe(new Date(2026, 9, 16, 9, 0).getTime())
+    }
+  })
+})

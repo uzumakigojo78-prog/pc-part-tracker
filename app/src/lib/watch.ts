@@ -13,7 +13,7 @@ export function watchStatus(w: WatchItem, entry: IndexEntry | undefined): WatchS
   let changePct: number | null = null
   if (current !== null && w.priceWhenAdded !== null) {
     change = Math.round((current - w.priceWhenAdded) * 100) / 100
-    changePct = Math.round((current - w.priceWhenAdded) / w.priceWhenAdded * 1000) / 10
+    if (w.priceWhenAdded > 0) changePct = Math.round((current - w.priceWhenAdded) / w.priceWhenAdded * 1000) / 10
   }
   const belowTarget = w.targetPrice != null && current !== null && current <= w.targetPrice
   return { current, change, changePct, belowTarget, untracked: false }
@@ -26,6 +26,6 @@ export function alertsFor(items: WatchItem[], index: Map<string, IndexEntry>, la
     if (s.untracked || s.current === null) return false
     const last = lastNotified[w.partId]
     if (last !== undefined && !(s.current < last)) return false
-    return s.belowTarget || (w.priceWhenAdded !== null && s.current < w.priceWhenAdded)
+    return s.belowTarget || (w.priceWhenAdded !== null && w.priceWhenAdded > 0 && s.current < w.priceWhenAdded)
   })
 }
