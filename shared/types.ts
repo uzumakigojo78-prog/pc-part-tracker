@@ -1,5 +1,5 @@
 export type Category = 'cpu'|'cooler'|'motherboard'|'ram'|'gpu'|'storage'|'psu'|'case'|'prebuilt';
-export type RetailerId = 'newegg'|'amazon'|'ebay';
+export type RetailerId = 'bestbuy'|'amazon'|'ebay';
 export interface RetailerRef { retailer: RetailerId; productId: string; url: string }
 export interface CatalogPart { id: string; category: Category; brand: string; model: string;
   specs: Record<string, string>; image?: string; refs: RetailerRef[] }

@@ -7,9 +7,7 @@
     "scrape": "tsx src/run.ts"
   },
   "dependencies": {
-    "aws4": "^1.13.2",
-    "cheerio": "^1.2.0",
-    "robots-parser": "^3.0.1"
+    "aws4": "^1.13.2"
   },
   "devDependencies": {
     "@types/aws4": "^1.11.6",

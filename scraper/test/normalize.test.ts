@@ -9,13 +9,13 @@ test('isCredible', () => {
   expect(isCredible({ ...base, condition: 'new', sellerFeedbackPct: 97.9 })).toBe(false);
   expect(isCredible({ ...base, condition: 'used', sellerFeedbackPct: 100 })).toBe(false);
   expect(isCredible({ ...base, condition: 'new' })).toBe(false);
-  expect(isCredible({ ...base, retailer: 'newegg' })).toBe(true);
+  expect(isCredible({ ...base, retailer: 'bestbuy' })).toBe(true);
 });
 test('toOffer', () => {
-  expect(toOffer({ ...base, retailer: 'newegg', price: null }, 't')).toBeNull();
+  expect(toOffer({ ...base, retailer: 'bestbuy', price: null }, 't')).toBeNull();
   expect(toOffer({ ...base }, 't')).toBeNull();
-  expect(toOffer({ ...base, retailer: 'newegg' }, 't')).toEqual(
-    { retailer: 'newegg', price: 100, url: 'u', inStock: true, rating: null, ratingCount: null, fetchedAt: 't' });
+  expect(toOffer({ ...base, retailer: 'bestbuy' }, 't')).toEqual(
+    { retailer: 'bestbuy', price: 100, url: 'u', inStock: true, rating: null, ratingCount: null, fetchedAt: 't' });
 });
 
 const part: CatalogPart = { id: 'p', category: 'gpu', brand: 'B', model: 'M', specs: {}, refs: [] };
@@ -24,10 +24,10 @@ const o = (retailer: Offer['retailer'], price: number, inStock: boolean, rating:
 
 test('buildIndexEntry', () => {
   expect(buildIndexEntry(part, [], 'T')).toMatchObject({ lowestPrice: null, lowestRetailer: null, rating: null, ratingCount: null, updatedAt: 'T' });
-  expect(buildIndexEntry(part, [o('amazon', 50, false), o('newegg', 80, true)], 'T'))
-    .toMatchObject({ lowestPrice: 80, lowestRetailer: 'newegg' });
-  expect(buildIndexEntry(part, [o('amazon', 50, false), o('newegg', 80, false)], 'T'))
+  expect(buildIndexEntry(part, [o('amazon', 50, false), o('bestbuy', 80, true)], 'T'))
+    .toMatchObject({ lowestPrice: 80, lowestRetailer: 'bestbuy' });
+  expect(buildIndexEntry(part, [o('amazon', 50, false), o('bestbuy', 80, false)], 'T'))
     .toMatchObject({ lowestPrice: 50, lowestRetailer: 'amazon' });
-  expect(buildIndexEntry(part, [o('amazon', 5, true, 5, 10), o('newegg', 8, true, 4, 30), o('ebay', 9, true)], 'T'))
+  expect(buildIndexEntry(part, [o('amazon', 5, true, 5, 10), o('bestbuy', 8, true, 4, 30), o('ebay', 9, true)], 'T'))
     .toMatchObject({ rating: 4.3, ratingCount: 40 });
 });
