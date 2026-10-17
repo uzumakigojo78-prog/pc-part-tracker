@@ -1,0 +1,21 @@
+{
+  "name": "scraper",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "scrape": "tsx src/run.ts"
+  },
+  "dependencies": {
+    "aws4": "^1.13.2",
+    "cheerio": "^1.2.0",
+    "robots-parser": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/aws4": "^1.11.6",
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
