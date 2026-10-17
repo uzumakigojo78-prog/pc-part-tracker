@@ -1,0 +1,22 @@
+{
+  "id": "intel-core-i5-14600k",
+  "category": "cpu",
+  "brand": "Intel",
+  "model": "Core i5-14600K",
+  "specs": {
+    "cores": "14",
+    "socket": "LGA1700"
+  },
+  "offers": [
+    {
+      "retailer": "amazon",
+      "price": 229.99,
+      "url": "https://example.com/intel-core-i5-14600k",
+      "inStock": true,
+      "rating": 4.6,
+      "ratingCount": 120,
+      "fetchedAt": "2026-10-15T12:00:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-10-15T12:00:00.000Z"
+}

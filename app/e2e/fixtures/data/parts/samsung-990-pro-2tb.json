@@ -1,0 +1,21 @@
+{
+  "id": "samsung-990-pro-2tb",
+  "category": "storage",
+  "brand": "Samsung",
+  "model": "990 Pro 2TB",
+  "specs": {
+    "capacity": "2 TB"
+  },
+  "offers": [
+    {
+      "retailer": "ebay",
+      "price": 169.99,
+      "url": "https://example.com/samsung-990-pro-2tb",
+      "inStock": true,
+      "rating": 4.6,
+      "ratingCount": 120,
+      "fetchedAt": "2026-10-15T12:00:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-10-15T12:00:00.000Z"
+}

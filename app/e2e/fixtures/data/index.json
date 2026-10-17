@@ -1,0 +1,68 @@
+[
+  {
+    "id": "amd-ryzen-7-7800x3d",
+    "category": "cpu",
+    "brand": "AMD",
+    "model": "Ryzen 7 7800X3D",
+    "lowestPrice": 349.99,
+    "lowestRetailer": "bestbuy",
+    "rating": 4.6,
+    "ratingCount": 120,
+    "updatedAt": "2026-10-15T12:00:00.000Z"
+  },
+  {
+    "id": "intel-core-i5-14600k",
+    "category": "cpu",
+    "brand": "Intel",
+    "model": "Core i5-14600K",
+    "lowestPrice": 229.99,
+    "lowestRetailer": "amazon",
+    "rating": 4.6,
+    "ratingCount": 120,
+    "updatedAt": "2026-10-15T12:00:00.000Z"
+  },
+  {
+    "id": "nvidia-geforce-rtx-4070",
+    "category": "gpu",
+    "brand": "NVIDIA",
+    "model": "GeForce RTX 4070",
+    "lowestPrice": 549.99,
+    "lowestRetailer": "bestbuy",
+    "rating": 4.6,
+    "ratingCount": 120,
+    "updatedAt": "2026-10-15T12:00:00.000Z"
+  },
+  {
+    "id": "corsair-vengeance-32gb-ddr5",
+    "category": "ram",
+    "brand": "Corsair",
+    "model": "Vengeance 32GB DDR5-6000",
+    "lowestPrice": 94.99,
+    "lowestRetailer": "amazon",
+    "rating": 4.6,
+    "ratingCount": 120,
+    "updatedAt": "2026-10-15T12:00:00.000Z"
+  },
+  {
+    "id": "samsung-990-pro-2tb",
+    "category": "storage",
+    "brand": "Samsung",
+    "model": "990 Pro 2TB",
+    "lowestPrice": 169.99,
+    "lowestRetailer": "ebay",
+    "rating": 4.6,
+    "ratingCount": 120,
+    "updatedAt": "2026-10-15T12:00:00.000Z"
+  },
+  {
+    "id": "corsair-rm850x",
+    "category": "psu",
+    "brand": "Corsair",
+    "model": "RM850x",
+    "lowestPrice": null,
+    "lowestRetailer": null,
+    "rating": null,
+    "ratingCount": null,
+    "updatedAt": "2026-10-15T12:00:00.000Z"
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "id": "nvidia-geforce-rtx-4070",
+  "category": "gpu",
+  "brand": "NVIDIA",
+  "model": "GeForce RTX 4070",
+  "specs": {
+    "memory": "12 GB",
+    "length": "244 mm"
+  },
+  "offers": [
+    {
+      "retailer": "bestbuy",
+      "price": 549.99,
+      "url": "https://example.com/nvidia-geforce-rtx-4070",
+      "inStock": true,
+      "rating": 4.6,
+      "ratingCount": 120,
+      "fetchedAt": "2026-10-15T12:00:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-10-15T12:00:00.000Z"
+}

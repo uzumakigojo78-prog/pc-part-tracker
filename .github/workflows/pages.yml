@@ -37,7 +37,13 @@ jobs:
         run: npm ci
       - name: Test
         working-directory: app
-        run: npx vitest run --passWithNoTests
+        run: npx vitest run
+      - name: E2E smoke tests
+        working-directory: app
+        # Builds its own dist-e2e/ against fixture data; the deploy build below is separate.
+        run: |
+          npx playwright install --with-deps chromium
+          npm run e2e
       - name: Build
         working-directory: app
         run: npm run build

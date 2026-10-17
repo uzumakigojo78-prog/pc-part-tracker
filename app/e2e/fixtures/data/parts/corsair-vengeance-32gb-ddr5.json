@@ -1,0 +1,21 @@
+{
+  "id": "corsair-vengeance-32gb-ddr5",
+  "category": "ram",
+  "brand": "Corsair",
+  "model": "Vengeance 32GB DDR5-6000",
+  "specs": {
+    "capacity": "32 GB"
+  },
+  "offers": [
+    {
+      "retailer": "amazon",
+      "price": 94.99,
+      "url": "https://example.com/corsair-vengeance-32gb-ddr5",
+      "inStock": true,
+      "rating": 4.6,
+      "ratingCount": 120,
+      "fetchedAt": "2026-10-15T12:00:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-10-15T12:00:00.000Z"
+}

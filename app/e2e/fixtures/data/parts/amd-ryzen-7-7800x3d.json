@@ -1,0 +1,22 @@
+{
+  "id": "amd-ryzen-7-7800x3d",
+  "category": "cpu",
+  "brand": "AMD",
+  "model": "Ryzen 7 7800X3D",
+  "specs": {
+    "cores": "8",
+    "socket": "AM5"
+  },
+  "offers": [
+    {
+      "retailer": "bestbuy",
+      "price": 349.99,
+      "url": "https://example.com/amd-ryzen-7-7800x3d",
+      "inStock": true,
+      "rating": 4.6,
+      "ratingCount": 120,
+      "fetchedAt": "2026-10-15T12:00:00.000Z"
+    }
+  ],
+  "updatedAt": "2026-10-15T12:00:00.000Z"
+}

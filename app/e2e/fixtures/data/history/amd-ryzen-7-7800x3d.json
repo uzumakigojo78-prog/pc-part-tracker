@@ -1,0 +1,52 @@
+[
+  {
+    "date": "2026-05-01",
+    "retailer": "bestbuy",
+    "price": 399.99
+  },
+  {
+    "date": "2026-05-01",
+    "retailer": "amazon",
+    "price": 404.99
+  },
+  {
+    "date": "2026-06-01",
+    "retailer": "bestbuy",
+    "price": 389.99
+  },
+  {
+    "date": "2026-06-01",
+    "retailer": "amazon",
+    "price": 394.99
+  },
+  {
+    "date": "2026-07-01",
+    "retailer": "bestbuy",
+    "price": 379.99
+  },
+  {
+    "date": "2026-07-01",
+    "retailer": "amazon",
+    "price": 384.99
+  },
+  {
+    "date": "2026-08-01",
+    "retailer": "bestbuy",
+    "price": 369.99
+  },
+  {
+    "date": "2026-08-01",
+    "retailer": "amazon",
+    "price": 374.99
+  },
+  {
+    "date": "2026-09-01",
+    "retailer": "bestbuy",
+    "price": 359.99
+  },
+  {
+    "date": "2026-09-01",
+    "retailer": "amazon",
+    "price": 364.99
+  }
+]

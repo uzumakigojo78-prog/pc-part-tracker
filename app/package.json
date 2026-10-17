@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "build:runner": "esbuild src/runner/runner.ts --bundle --format=iife --outfile=public/runners/runner.js",
-    "build:android": "npm run build:runner && VITE_DATA_URL=https://uzumakigojo78-prog.github.io/pc-part-tracker/data/ npm run build && cap sync android"
+    "build:android": "npm run build:runner && VITE_DATA_URL=https://uzumakigojo78-prog.github.io/pc-part-tracker/data/ npm run build && cap sync android",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.3",
+    "@playwright/test": "^1.64.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/node": "^24.13.3",
