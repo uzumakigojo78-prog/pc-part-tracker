@@ -18,7 +18,8 @@ const POS = {
   psu: [0, -18.7, -8] as V3,
   storage: [5, -12, 18] as V3,
 }
-const RAM_BASE: V3 = [FACE_X + 1.55, 10, -2] // sticks stand on the board, 1 cm apart along y
+// DIMMs stand on the board past the cooler (z >= 1), length along y, side by side along z at 1 cm pitch
+const RAM_BASE: V3 = [FACE_X + 1.55, 10.5, 1.2]
 
 const num = (v: string | undefined, d: number) => {
   const n = Number(v)
@@ -44,7 +45,7 @@ export function layoutFor(
   for (const slot of SLOTS) {
     if (slot === 'ram') {
       for (let i = 0; i < sticks; i++) {
-        boxes.push({ slot, position: [RAM_BASE[0], RAM_BASE[1] + i, RAM_BASE[2]], size: [3.1, 0.4, 13.3], filled: f(slot) })
+        boxes.push({ slot, position: [RAM_BASE[0], RAM_BASE[1], RAM_BASE[2] + i], size: [3.1, 13.3, 0.4], filled: f(slot) })
       }
     } else {
       boxes.push({ slot, position: POS[slot], size: sizes[slot], filled: f(slot) })

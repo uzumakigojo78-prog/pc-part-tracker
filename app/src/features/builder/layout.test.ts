@@ -30,4 +30,16 @@ describe('layoutFor', () => {
       expect(Math.abs(b.position[i]) + b.size[i] / 2, `${b.slot} axis ${i}`).toBeLessThanOrEqual([21, 46, 45][i] / 2 + 1e-9)
     }
   })
+  it('no two parts intersect except CPU and cooler', () => {
+    const all = Object.fromEntries(SLOTS.map(s => [s, true]))
+    for (const len of ['422', '300']) for (const modules of ['2', '4']) {
+      const boxes = layoutFor(all, { gpu: { lengthMm: len }, ram: { modules } }).filter(b => b.slot !== 'case')
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const [a, b] = [boxes[i], boxes[j]]
+        if ([a.slot, b.slot].sort().join() === 'cooler,cpu') continue
+        const hit = [0, 1, 2].every(k => Math.abs(a.position[k] - b.position[k]) < (a.size[k] + b.size[k]) / 2 - 1e-9)
+        expect(hit, `${a.slot} vs ${b.slot} (gpu ${len}, ${modules} sticks)`).toBe(false)
+      }
+    }
+  })
 })
