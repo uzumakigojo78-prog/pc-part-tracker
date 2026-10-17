@@ -13,6 +13,7 @@ vi.mock('../../platform', async (orig) => ({
   ...(await orig<typeof import('../../platform')>()),
   isNative: vi.fn(() => false),
   saveBackup: vi.fn(async () => 'downloaded' as const),
+  lastNativeBackup: vi.fn(async () => null),
 }))
 
 const refresh = vi.fn(async () => {})
@@ -22,7 +23,7 @@ function renderPage() {
 }
 const csv = (name: string, text: string) => new File([text], name, { type: 'text/csv' })
 
-beforeEach(async () => { await resetDbForTests(); vi.mocked(platform.saveBackup).mockResolvedValue('downloaded'); vi.mocked(platform.isNative).mockReturnValue(false) })
+beforeEach(async () => { await resetDbForTests(); vi.mocked(platform.saveBackup).mockResolvedValue('downloaded'); vi.mocked(platform.isNative).mockReturnValue(false); vi.mocked(platform.lastNativeBackup).mockResolvedValue(null) })
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 describe('SettingsPage', () => {
@@ -41,6 +42,13 @@ describe('SettingsPage', () => {
     await settings.set({ backupFrequency: 'daily' })
     renderPage()
     expect((await screen.findByText(/Next backup:/)).textContent).toContain('approximately')
+  })
+
+  it('a newer failed native scheduled run shows Last backup failed', async () => {
+    await settings.set({ lastBackupAt: '2026-10-15T09:00:00.000Z', lastBackupStatus: 'ok' })
+    vi.mocked(platform.lastNativeBackup).mockResolvedValue({ at: '2026-10-16T09:00:00.000Z', status: 'failed', error: 'disk full' })
+    renderPage()
+    expect(await screen.findByText('Last backup failed')).toBeTruthy()
   })
 
   it('Export now saves and records ok', async () => {

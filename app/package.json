@@ -8,9 +8,14 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:runner": "esbuild src/runner/runner.ts --bundle --format=iife --outfile=public/runners/runner.js",
+    "build:android": "npm run build:runner && VITE_DATA_URL=https://uzumakigojo78-prog.github.io/pc-part-tracker/data/ npm run build && cap sync android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/background-runner": "^3.0.0",
+    "@capacitor/core": "^8.5.3",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "fuse.js": "^7.5.0",
@@ -22,6 +27,7 @@
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.8",
     "@types/node": "^24.13.3",
@@ -29,6 +35,7 @@
     "@types/react-dom": "^19.2.7",
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "esbuild": "^0.28.2",
     "fake-indexeddb": "^6.2.6",
     "jsdom": "^30.1.3",
     "oxlint": "^1.81.0",

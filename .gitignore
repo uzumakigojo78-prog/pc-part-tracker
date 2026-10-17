@@ -6,3 +6,4 @@ app/android/app/build
 .superpowers/
 scraper/catalog.candidates.json
 app/public/data
+app/public/runners

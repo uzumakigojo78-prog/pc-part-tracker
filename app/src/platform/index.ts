@@ -1,9 +1,20 @@
+import { registerPlugin } from '@capacitor/core'
+import { BackgroundRunner } from '@capacitor/background-runner'
 import type { HistoryPoint, IndexEntry } from '../../../shared/types'
 import { exportBackup } from '../lib/csv'
 import type { BackupFiles } from '../lib/csv'
 import { builds, watchlist } from '../lib/db'
 import type { Settings } from '../lib/db'
-import { fetchJson } from '../lib/data'
+import { DATA_URL, fetchJson } from '../lib/data'
+
+export interface BackupResult { at: string | null; status: 'ok' | 'failed' | null; error?: string }
+interface ScheduledBackupPlugin {
+  schedule(opts: { frequency: Settings['backupFrequency']; time: string; files: BackupFiles | null }): Promise<void>
+  exportNow(opts: { files: BackupFiles }): Promise<{ folder: string }>
+  lastResult(): Promise<BackupResult>
+}
+const ScheduledBackup = registerPlugin<ScheduledBackupPlugin>('ScheduledBackup')
+const RUNNER_LABEL = 'io.github.uzumakigojo78_prog.pcparttracker.prices'
 
 export const isNative = (): boolean =>
   typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.() // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -24,6 +35,7 @@ export async function collectBackup(index: Map<string, IndexEntry>): Promise<Bac
 }
 
 export async function saveBackup(files: BackupFiles, date: string): Promise<'saved' | 'shared' | 'downloaded'> {
+  if (isNative()) { await ScheduledBackup.exportNow({ files }); return 'saved' }
   const list = (Object.keys(files) as (keyof BackupFiles)[]).map((n) => new File([files[n]], n, { type: 'text/csv' }))
   if (navigator.canShare?.({ files: list })) {
     try {
@@ -46,5 +58,19 @@ export async function saveBackup(files: BackupFiles, date: string): Promise<'sav
   return 'downloaded'
 }
 
-/** Web: no-op. Task 13 schedules/performs native backups here. */
-export async function syncNative(_s: Settings, _files: BackupFiles | null): Promise<void> {}
+/** Native: (re)schedules the backup with the latest snapshot and hands the watchlist to the price runner. Web: no-op. */
+export async function syncNative(s: Settings, files: BackupFiles | null): Promise<void> {
+  if (!isNative()) return
+  await ScheduledBackup.schedule({ frequency: s.backupFrequency, time: s.backupTime, files })
+  await BackgroundRunner.dispatchEvent({ label: RUNNER_LABEL, event: 'syncWatchlist', details: { watchlist: await watchlist.all(), dataUrl: DATA_URL } })
+}
+
+/** Native: result of the last native backup (scheduled or manual). Web: null. */
+export async function lastNativeBackup(): Promise<BackupResult | null> {
+  return isNative() ? ScheduledBackup.lastResult() : null
+}
+
+/** Native: asks for notification permission (no prompt if already decided). Web: no-op. */
+export async function requestNotifications(): Promise<void> {
+  if (isNative()) await BackgroundRunner.requestPermissions({ apis: ['notifications'] })
+}

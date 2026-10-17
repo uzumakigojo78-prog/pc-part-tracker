@@ -4,7 +4,8 @@ import type { Settings } from '../../lib/db'
 import { parseBackup } from '../../lib/csv'
 import { nextBackupAt } from '../../lib/schedule'
 import { useIndex } from '../../lib/useIndex'
-import { isNative } from '../../platform'
+import { isNative, lastNativeBackup } from '../../platform'
+import type { BackupResult } from '../../platform'
 import { runBackup } from './runBackup'
 
 export default function SettingsPage() {
@@ -14,9 +15,10 @@ export default function SettingsPage() {
   const [importErrors, setImportErrors] = useState<string[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
+  const [nativeLast, setNativeLast] = useState<BackupResult | null>(null)
 
   useEffect(() => {
-    const load = () => { void settings.get().then(setS) }
+    const load = () => { void settings.get().then(setS); void lastNativeBackup().then(setNativeLast, () => {}) }
     load()
     return onChange(load)
   }, [])
@@ -24,6 +26,9 @@ export default function SettingsPage() {
   if (!s) return <div className="page"><h1>Settings</h1></div>
 
   const update = async (p: Partial<Settings>) => await settings.set(p)
+  // A scheduled native run never touches IndexedDB, so prefer the native record when it is newer.
+  const last = nativeLast?.at && (!s.lastBackupAt || Date.parse(nativeLast.at) > Date.parse(s.lastBackupAt))
+    ? { at: nativeLast.at, status: nativeLast.status } : { at: s.lastBackupAt, status: s.lastBackupStatus }
   const next = nextBackupAt(s, new Date())
   const nextText = next ? `${isNative() ? 'approximately ' : ''}${next.toLocaleString()}` : 'off'
 
@@ -65,8 +70,8 @@ export default function SettingsPage() {
         </label>
         <p>Next backup: {nextText}</p>
         <button type="button" disabled={busy} onClick={() => void exportNow()}>Export now</button>
-        <p className={s.lastBackupStatus === 'failed' ? 'rise' : 'muted'}>
-          {s.lastBackupStatus === 'failed' ? 'Last backup failed' : s.lastBackupAt ? `Last backup: ${new Date(s.lastBackupAt).toLocaleString()}` : 'No backup yet'}
+        <p className={last.status === 'failed' ? 'rise' : 'muted'}>
+          {last.status === 'failed' ? 'Last backup failed' : last.at ? `Last backup: ${new Date(last.at).toLocaleString()}` : 'No backup yet'}
         </p>
         <label>Import backup{' '}
           <input ref={fileRef} type="file" multiple accept=".csv,text/csv" onChange={(e) => { void importFiles(e.target.files).finally(() => { if (fileRef.current) fileRef.current.value = '' }) }} />

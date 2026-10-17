@@ -1,4 +1,4 @@
-export const USER_AGENT = 'PCPartTrackerBot/1.0 (+https://github.com/<owner>/pc-part-tracker)';
+export const USER_AGENT = 'PCPartTrackerBot/1.0 (+https://github.com/uzumakigojo78-prog/pc-part-tracker)';
 const MIN_GAP_MS = 2000;
 const lastByHost = new Map<string, number>();
 

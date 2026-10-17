@@ -8,6 +8,7 @@ import { SLOTS, nextBuildName } from '../../lib/build'
 import type { Slot } from '../../lib/build'
 import { CATEGORY_NAMES, RETAILER_NAMES, formatPrice, specLabel, specValue } from '../../lib/format'
 import { useIndex } from '../../lib/useIndex'
+import { requestNotifications } from '../../platform'
 import PriceChart from './PriceChart'
 
 function Stars({ rating, count }: { rating: number | null; count: number | null }) {
@@ -67,7 +68,9 @@ export default function PartPage() {
     if (watching) await watchlist.remove(part.id)
     else {
       const w: WatchItem = { partId: part.id, model: `${part.brand} ${part.model}`, addedAt: new Date().toISOString(), priceWhenAdded: lowest, targetPrice: null }
+      const first = (await watchlist.all()).length === 0
       await watchlist.put(w)
+      if (first) void requestNotifications().catch(() => {}) // denial just means no price alerts
     }
   }
 
