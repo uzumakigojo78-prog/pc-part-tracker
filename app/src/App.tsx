@@ -9,6 +9,8 @@ import SearchPage from './features/search/SearchPage'
 import PartPage from './features/search/PartPage'
 import BuilderPage from './features/builder/BuilderPage'
 import WatchlistPage from './features/watchlist/WatchlistPage'
+import SettingsPage from './features/settings/SettingsPage'
+import BackupBanner from './features/settings/BackupBanner'
 
 export function IndexProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<Omit<IndexState, 'refresh' | 'byId'>>({ index: [], fetchedAt: null, stale: false, error: null, loading: true })
@@ -29,11 +31,6 @@ export function IndexProvider({ children }: { children: ReactNode }) {
   )
   return <IndexContext.Provider value={value}>{children}</IndexContext.Provider>
 }
-
-// Placeholders: replaced by later tasks (settings).
-const Soon = ({ title }: { title: string }) => (
-  <div className="page"><h1>{title}</h1><p className="muted">Coming soon.</p></div>
-)
 
 const Icon = ({ d }: { d: string }) => (
   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
@@ -57,6 +54,7 @@ export default function App() {
             </NavLink>
           ))}
         </nav>
+        <BackupBanner />
         <main>
           <Routes>
             <Route path="/" element={<Navigate to="/search" replace />} />
@@ -65,7 +63,7 @@ export default function App() {
             <Route path="/build" element={<BuilderPage />} />
             <Route path="/build/:buildId" element={<BuilderPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
-            <Route path="/settings" element={<Soon title="Settings" />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<Navigate to="/search" replace />} />
           </Routes>
         </main>
