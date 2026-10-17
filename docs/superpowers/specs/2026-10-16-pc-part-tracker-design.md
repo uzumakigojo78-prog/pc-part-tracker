@@ -18,7 +18,8 @@ survive app restarts and can be exported to CSV on a schedule (Android) or on
 demand (iPhone).
 
 ### Stated by the user
-- Sources: Amazon, Newegg, and "Jawa" (read as eBay — confirm).
+- Sources: Amazon, Newegg, and "Jawa" (read as eBay — confirm). Newegg was
+  later replaced by Best Buy (see §3.1).
 - Search results only from credible sources.
 - Price history, ratings, model and specs, cleanly laid out, simple navigation.
 - Tabs: Search, PC Builder with 3D render, Watchlist (bookmarks with price
@@ -67,23 +68,26 @@ Each retailer is an adapter implementing:
 
 ```ts
 interface RetailerAdapter {
-  id: 'newegg' | 'amazon' | 'ebay';
+  id: 'bestbuy' | 'amazon' | 'ebay';
   fetchOffer(ref: RetailerRef): Promise<RawListing | null>;
 }
 ```
 
-Order of preference per retailer:
-1. Official / affiliate API when the owner has keys (Amazon Product
-   Advertising API, eBay Browse API). Keys are stored as GitHub Actions
-   secrets, never in the repo or app.
-2. Public structured data on product pages (JSON-LD `Product` / `Offer` /
-   `AggregateRating`) fetched politely: identified User-Agent, ≥2 s between
-   requests, respects `robots.txt`.
+Revised 2026-10-16: Newegg product pages are behind Cloudflare bot
+protection, so Newegg is dropped and no pages are scraped. Every source is
+an official API, with keys stored as GitHub Actions secrets (never in the
+repo or app):
+- **Best Buy Products API** (free developer key) — price, availability,
+  ratings.
+- **eBay Browse API** (free developer key).
+- **Amazon Product Advertising API** (requires an Associates account that
+  stays eligible).
 
-An adapter that fails (blocked, layout change, HTTP error) logs a warning and
-returns nothing for that part; the run still commits data from the other
-adapters. A run where every adapter fails exits non-zero so the Action shows
-red.
+Requests use an identified User-Agent and ≥2 s between calls per host. An
+adapter without its key is skipped. An adapter that fails (HTTP error,
+revoked key) logs a warning and returns nothing for that part; the run still
+commits data from the others. A run where something was tried and nothing
+succeeded exits non-zero so the Action shows red.
 
 ### 3.2 What gets tracked
 The catalog is `scraper/catalog.json`: a list of tracked parts (category,
@@ -217,10 +221,10 @@ Three files, RFC 4180 quoting:
 
 ## 10. Risks
 
-- **Retailer blocking / terms of service:** Amazon and Newegg restrict
-  scraping and block bots; adapters may break at any time. Mitigation: prefer
-  official APIs, fail per adapter, keep the catalog modest and the request
-  rate low. The owner is responsible for complying with each retailer's terms.
+- **API access:** every source needs a key the owner obtains; Amazon PA-API
+  access is revoked for Associates accounts without recent qualifying sales.
+  Until keys exist the app shows parts with no prices. The owner is
+  responsible for each API's terms (attribution, caching limits).
 - **GitHub Actions:** scheduled workflows pause after 60 days without repo
   activity; the scraper's own data commits keep it active.
 - **Repo growth:** history JSON grows over time; 2-year pruning bounds it.

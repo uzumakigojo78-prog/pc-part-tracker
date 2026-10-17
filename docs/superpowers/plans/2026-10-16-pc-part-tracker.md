@@ -6,18 +6,20 @@
 
 **Architecture:** `scraper/` (Node + TS) reads `scraper/catalog.json`, fetches offers per retailer adapter, and writes `data/index.json`, `data/parts/<id>.json`, `data/history/<id>.json`. `app/` (React + Vite + TS) fetches that JSON over HTTPS, keeps personal data in IndexedDB, and on Android adds a native WorkManager backup plugin plus a Capacitor Background Runner for price-drop notifications. `shared/types.ts` is the contract between the two.
 
-**Tech Stack:** TypeScript, Node 22, Vitest, React 19, Vite, react-router (HashRouter), `idb`, Fuse.js, Recharts, three + @react-three/fiber + @react-three/drei, vite-plugin-pwa, Capacitor (latest stable) + @capacitor/background-runner, Kotlin (WorkManager, MediaStore), Playwright, cheerio, robots-parser, aws4.
+**Tech Stack:** TypeScript, Node 22, Vitest, React 19, Vite, react-router (HashRouter), `idb`, Fuse.js, Recharts, three + @react-three/fiber + @react-three/drei, vite-plugin-pwa, Capacitor (latest stable) + @capacitor/background-runner, Kotlin (WorkManager, MediaStore), Playwright, aws4.
+
+> **Revision 2026-10-16 (user decision):** Newegg product pages sit behind Cloudflare bot protection (HTTP 403 "Just a moment…" to any scripted client), and bypassing it is out of bounds. All retailer data now comes from official APIs: **Best Buy Products API** (replaces Newegg), eBay Browse API, Amazon PA-API. No page scraping, so no JSON-LD parser, cheerio or robots-parser. Each adapter is skipped (logged) when its key is missing.
 
 **Spec:** `docs/superpowers/specs/2026-10-16-pc-part-tracker-design.md`
 
 ## Global Constraints
 
-- Retailer whitelist: `newegg`, `amazon`, `ebay` only. eBay listings must be condition `new` and seller feedback `>= 98`%.
+- Retailer whitelist: `bestbuy`, `amazon`, `ebay` only. eBay listings must be condition `new` and seller feedback `>= 98`%.
 - Offers match catalog parts by retailer reference only — never by title.
-- Polite fetching: User-Agent `PCPartTrackerBot/1.0 (+https://github.com/<owner>/pc-part-tracker)`, `>= 2000` ms between requests to the same host, obey `robots.txt`.
+- Polite fetching: User-Agent `PCPartTrackerBot/1.0 (+https://github.com/<owner>/pc-part-tracker)`, `>= 2000` ms between requests to the same host (well under Best Buy's 5 req/s limit).
 - Scrape schedule: 4×/day, `cron: '17 */6 * * *'`.
 - History points older than 730 days are dropped.
-- Secrets live only in GitHub Actions secrets: `AMAZON_PAAPI_ACCESS_KEY`, `AMAZON_PAAPI_SECRET_KEY`, `AMAZON_PARTNER_TAG`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Never in the repo or the app bundle.
+- Secrets live only in GitHub Actions secrets: `BESTBUY_API_KEY`, `AMAZON_PAAPI_ACCESS_KEY`, `AMAZON_PAAPI_SECRET_KEY`, `AMAZON_PARTNER_TAG`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET`, `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`. Never in the repo or the app bundle.
 - Builder slots, in order: `cpu, cooler, motherboard, ram, gpu, storage, psu, case`. Category `prebuilt` is searchable but has no slot.
 - Tabs, in order: Search · Build · Watchlist · Settings.
 - Backup frequency `off | daily | weekly`; time of day `HH:MM` local. On Android the time is labeled "approximately".
@@ -29,7 +31,7 @@
 
 **Plan decisions that refine the spec** (flag in review if unwanted):
 - Spec §4.5 had `@capacitor/background-runner` writing the CSVs. The runner has no filesystem API, so a small Kotlin WorkManager plugin (`ScheduledBackup`) writes the files; the runner only refreshes prices and posts notifications.
-- Amazon product pages have no reliable JSON-LD, so the Amazon adapter uses PA-API only and is skipped (logged) without keys. eBay uses the Browse API (keys required). Newegg uses JSON-LD from product pages.
+- Every adapter is an official API: Best Buy Products API, eBay Browse API, Amazon PA-API. An adapter without its keys is skipped (logged), never failed.
 
 ## Review Focus
 
@@ -50,12 +52,12 @@ pc-part-tracker/
     package.json, tsconfig.json
     catalog.json                      # tracked parts (seed ~100)
     src/price.ts                      # parsePrice
-    src/jsonld.ts                     # extractJsonLdProduct
     src/normalize.ts                  # isCredible, toOffer, buildIndexEntry
     src/history.ts                    # appendHistory
     src/fetch.ts                      # politeFetch
-    src/adapters/{index,newegg,amazon,ebay}.ts
+    src/adapters/{index,bestbuy,amazon,ebay}.ts
     src/run.ts                        # run() + CLI main
+    src/find-refs.ts                  # Best Buy SKU candidates for human review
     test/*.test.ts, test/fixtures/*
   data/                               # generated; committed by the Action
   app/
@@ -91,7 +93,7 @@ pc-part-tracker/
 - Produces (`shared/types.ts`):
 ```ts
 export type Category = 'cpu'|'cooler'|'motherboard'|'ram'|'gpu'|'storage'|'psu'|'case'|'prebuilt';
-export type RetailerId = 'newegg'|'amazon'|'ebay';
+export type RetailerId = 'bestbuy'|'amazon'|'ebay';
 export interface RetailerRef { retailer: RetailerId; productId: string; url: string }
 export interface CatalogPart { id: string; category: Category; brand: string; model: string;
   specs: Record<string, string>; image?: string; refs: RetailerRef[] }
@@ -116,17 +118,16 @@ export interface HistoryPoint { date: string; retailer: RetailerId; price: numbe
 
 ---
 
-### Task 2: Scraper parsing — price, JSON-LD, normalization
+### Task 2: Scraper parsing — price and normalization
 
 **Files:**
-- Create: `scraper/src/price.ts`, `scraper/src/jsonld.ts`, `scraper/src/normalize.ts`
-- Test: `scraper/test/{price,jsonld,normalize}.test.ts`, `scraper/test/fixtures/newegg-product.html` (a real Newegg page trimmed to its JSON-LD script)
+- Create: `scraper/src/price.ts`, `scraper/src/normalize.ts`
+- Test: `scraper/test/{price,normalize}.test.ts`
 
 **Interfaces:**
 - Consumes: `shared/types.ts`
 - Produces:
   - `parsePrice(text: string | number | null | undefined): number | null`
-  - `extractJsonLdProduct(html: string): { price: number | null; inStock: boolean; rating: number | null; ratingCount: number | null } | null`
   - `isCredible(l: RawListing): boolean`
   - `toOffer(l: RawListing, fetchedAt: string): Offer | null`
   - `buildIndexEntry(part: CatalogPart, offers: Offer[], updatedAt: string): IndexEntry`
@@ -143,58 +144,51 @@ expect(parsePrice(undefined)).toBeNull();
 expect(parsePrice('-5')).toBeNull();
 expect(parsePrice(0)).toBeNull();
 
-// jsonld.test.ts — expected values are the ones in the saved fixture
-expect(extractJsonLdProduct(fixture('newegg-product.html')))
-  .toEqual({ price: FIXTURE_PRICE, inStock: true, rating: FIXTURE_RATING, ratingCount: FIXTURE_COUNT });
-expect(extractJsonLdProduct('<html></html>')).toBeNull();
-expect(extractJsonLdProduct('<script type="application/ld+json">{bad json</script>')).toBeNull();
-// Product inside "@graph" is found; offers as an array → lowest price; AggregateOffer uses lowPrice
-
 // normalize.test.ts
 const base = { retailer: 'ebay', productId: '1', url: 'u', price: 100, inStock: true, rating: null, ratingCount: null } as const;
 expect(isCredible({ ...base, condition: 'new', sellerFeedbackPct: 98 })).toBe(true);
 expect(isCredible({ ...base, condition: 'new', sellerFeedbackPct: 97.9 })).toBe(false);
 expect(isCredible({ ...base, condition: 'used', sellerFeedbackPct: 100 })).toBe(false);
 expect(isCredible({ ...base, condition: 'new' })).toBe(false);          // eBay without feedback
-expect(isCredible({ ...base, retailer: 'newegg' })).toBe(true);
-expect(toOffer({ ...base, retailer: 'newegg', price: null }, 't')).toBeNull();
+expect(isCredible({ ...base, retailer: 'bestbuy' })).toBe(true);
+expect(toOffer({ ...base, retailer: 'bestbuy', price: null }, 't')).toBeNull();
 // buildIndexEntry: lowest in-stock offer wins; if none in stock, lowest overall; no offers → lowestPrice/lowestRetailer null;
 // rating = ratingCount-weighted mean across offers with ratings, ratingCount = sum
 ```
 - [ ] **Step 2:** Run `cd scraper && npx vitest run` — expect FAIL (modules missing).
-- [ ] **Step 3:** Implement. `parsePrice`: numbers pass through; strings strip all but digits, `.` and leading `-`, then `Number()`; return `null` unless finite and `> 0`. `extractJsonLdProduct`: cheerio over every `script[type="application/ld+json"]`, `JSON.parse` in try/catch, first node with `@type` `Product` (also inside `@graph` and arrays), `availability` containing `InStock`, `aggregateRating.ratingValue` and `reviewCount ?? ratingCount`.
+- [ ] **Step 3:** Implement. `parsePrice`: numbers pass through; strings strip all but digits, `.` and leading `-`, then `Number()`; return `null` unless finite and `> 0`.
 - [ ] **Step 4:** Run `npx vitest run` — expect PASS.
-- [ ] **Step 5:** Commit: `feat(scraper): price, JSON-LD and normalization`.
+- [ ] **Step 5:** Commit: `feat(scraper): price and normalization`.
 
 ---
 
 ### Task 3: Scraper fetching and retailer adapters
 
 **Files:**
-- Create: `scraper/src/fetch.ts`, `scraper/src/adapters/{index,newegg,amazon,ebay}.ts`
-- Test: `scraper/test/{fetch,adapters}.test.ts`, `scraper/test/fixtures/{ebay-item.json,amazon-getitems.json}`
+- Create: `scraper/src/fetch.ts`, `scraper/src/adapters/{index,bestbuy,amazon,ebay}.ts`
+- Test: `scraper/test/{fetch,adapters}.test.ts`, `scraper/test/fixtures/{bestbuy-products.json,ebay-item.json,amazon-getitems.json}` (shaped per each API's public docs)
 
 **Interfaces:**
-- Consumes: Task 2 `extractJsonLdProduct`, `parsePrice`
+- Consumes: Task 2 `parsePrice`
 - Produces:
   - `interface RetailerAdapter { id: RetailerId; enabled(): boolean; fetchOffer(ref: RetailerRef): Promise<RawListing | null> }`
-  - `class BlockedByRobotsError extends Error`
   - `politeFetch(url: string, init?: RequestInit, deps?: { fetch?: typeof fetch; sleep?: (ms: number) => Promise<void>; now?: () => number }): Promise<Response>`
   - `createAdapters(env: NodeJS.ProcessEnv, f?: typeof politeFetch): RetailerAdapter[]`
 
 - [ ] **Step 1: Write failing tests** (inject fake fetch/sleep/now; fixtures for responses):
 ```ts
 // politeFetch: second call to the same host sleeps so calls are >= 2000ms apart; different hosts don't wait
-// politeFetch: robots.txt disallows the path → rejects with BlockedByRobotsError; robots.txt 404 → allowed
 // politeFetch: sends the User-Agent from Global Constraints
-// newegg.fetchOffer → RawListing with the fixture's price and rating
+// bestbuy.fetchOffer maps products fixture: price = salePrice, inStock = onlineAvailability, rating = customerReviewAverage, ratingCount = customerReviewCount, url = product url
+// bestbuy.fetchOffer: empty `products` array → null
 // ebay.fetchOffer maps getItem fixture: condition 'new', sellerFeedbackPct = Number(seller.feedbackPercentage), price = parsePrice(price.value)
 // amazon.fetchOffer maps GetItems fixture: price = Offers.Listings[0].Price.Amount, inStock from Availability.Type === 'Now'
-// amazon.enabled() / ebay.enabled() false when their env keys are missing; newegg always true
+// bestbuy/amazon/ebay .enabled() false when their env keys are missing, true when present
 // every adapter returns null (does not throw) on HTTP 404 or 503
+// the Best Buy API key never appears in a thrown error message or log line (redact `apiKey=` in URLs)
 ```
 - [ ] **Step 2:** Run — expect FAIL.
-- [ ] **Step 3:** Implement. `politeFetch` keeps per-host parsed `robots.txt` (robots-parser) and last-request timestamp. Newegg: `GET ref.url` → `extractJsonLdProduct`. eBay: client-credentials token from `https://api.ebay.com/identity/v1/oauth2/token` (scope `https://api.ebay.com/oauth/api_scope`, cached until expiry), then `GET https://api.ebay.com/buy/browse/v1/item/{productId}`. Amazon: PA-API 5 `GetItems` (`ItemIds: [productId]`, `PartnerTag`, resources `Offers.Listings.Price`, `Offers.Listings.Availability.Type`, `CustomerReviews.StarRating`, `CustomerReviews.Count`) to `https://webservices.amazon.com/paapi5/getitems`, signed with `aws4` (service `ProductAdvertisingAPI`, region `us-east-1`). API hosts skip robots.txt (they're APIs, not pages).
+- [ ] **Step 3:** Implement. `politeFetch` keeps a last-request timestamp per host. Best Buy: `GET https://api.bestbuy.com/v1/products(sku={productId})?apiKey={BESTBUY_API_KEY}&format=json&show=sku,name,salePrice,onlineAvailability,customerReviewAverage,customerReviewCount,url,image` → first of `products[]`. eBay: client-credentials token from `https://api.ebay.com/identity/v1/oauth2/token` (scope `https://api.ebay.com/oauth/api_scope`, cached until expiry), then `GET https://api.ebay.com/buy/browse/v1/item/{productId}`. Amazon: PA-API 5 `GetItems` (`ItemIds: [productId]`, `PartnerTag`, resources `Offers.Listings.Price`, `Offers.Listings.Availability.Type`, `CustomerReviews.StarRating`, `CustomerReviews.Count`) to `https://webservices.amazon.com/paapi5/getitems`, signed with `aws4` (service `ProductAdvertisingAPI`, region `us-east-1`).
 - [ ] **Step 4:** Run — expect PASS.
 - [ ] **Step 5:** Commit: `feat(scraper): polite fetch and retailer adapters`.
 
@@ -203,15 +197,16 @@ expect(toOffer({ ...base, retailer: 'newegg', price: null }, 't')).toBeNull();
 ### Task 4: Scraper run loop, history and seed catalog
 
 **Files:**
-- Create: `scraper/src/history.ts`, `scraper/src/run.ts`, `scraper/catalog.json`
-- Test: `scraper/test/{history,run}.test.ts`
+- Create: `scraper/src/history.ts`, `scraper/src/run.ts`, `scraper/src/find-refs.ts`, `scraper/catalog.json`
+- Test: `scraper/test/{history,run,find-refs}.test.ts`
 
 **Interfaces:**
 - Consumes: Tasks 2–3
 - Produces:
   - `appendHistory(existing: HistoryPoint[], offers: Offer[], date: string): HistoryPoint[]`
   - `run(opts: { catalog: CatalogPart[]; adapters: RetailerAdapter[]; dataDir: string; now: Date }): Promise<{ succeeded: number; failed: number; skipped: number }>` — counts are per (part, ref) fetch.
-  - CLI `npm run scrape`: exits `1` when `succeeded === 0`, else `0`.
+  - CLI `npm run scrape`: exits `1` when `failed > 0 && succeeded === 0` (something was tried and nothing worked); exits `0` with a warning when everything was skipped (no keys or no refs yet), so the scheduled Action stays green until keys exist.
+  - CLI `npm run find-refs`: for each catalog part with no `bestbuy` ref, queries `https://api.bestbuy.com/v1/products((search=<word>&search=<word>...)&categoryPath.name=<…optional>)?apiKey=…&format=json&show=sku,name,url&pageSize=3` with the brand + model words and writes `scraper/catalog.candidates.json` (`{ partId: [{ sku, name, url }] }`) for a human to confirm. It never edits `catalog.json` (offers must not be matched by title automatically).
   - Files: `data/index.json: IndexEntry[]`, `data/parts/<id>.json: PartDetail`, `data/history/<id>.json: HistoryPoint[]`.
 
 - [ ] **Step 1: Write failing tests** (temp dir via `fs.mkdtemp` as `dataDir`):
@@ -224,12 +219,14 @@ expect(toOffer({ ...base, retailer: 'newegg', price: null }, 't')).toBeNull();
 // run: part with zero offers → parts/<id>.json has offers: [], history file unchanged
 // run: index.json has every catalog part, sorted by id
 // run: all fetches fail → succeeded === 0
+// CLI exit-code rule as a pure function exitCode({succeeded, failed, skipped}): {0,1,0}→1; {0,0,5}→0; {1,3,0}→0
+// find-refs: builds the query from brand + model words, writes candidates for parts lacking a bestbuy ref only, never writes catalog.json (fake fetch)
 ```
 - [ ] **Step 2:** Run — expect FAIL.
 - [ ] **Step 3:** Implement `run` (sequential; each `fetchOffer` in try/catch with `console.warn(part.id, retailer, err.message)`) and the CLI main (`dataDir` = repo-root `data/`). Write JSON with 2-space indent and a trailing newline. History `date` = `now.toISOString().slice(0, 10)`.
-- [ ] **Step 4:** Write `catalog.json`: ~100 parts, at least 8 per builder slot plus a few `prebuilt`, each with a Newegg ref (item number + product URL). IDs are kebab-case `brand-model` (e.g. `amd-ryzen-7-9800x3d`). Spec keys: cpu `cores, threads, baseClock, boostClock, socket, tdp`; gpu `memory, lengthMm, tdp`; ram `capacity, type, speed, modules`; storage `capacity, interface, formFactor`; psu `wattage, efficiency, modular`; motherboard `socket, chipset, formFactor`; case `formFactor, maxGpuLengthMm`; cooler `type, heightMm`.
-- [ ] **Step 5:** Run tests — PASS. Live smoke: `npm run scrape` locally (Newegg only); confirm most `data/index.json` entries have a non-null `lowestPrice`. Note blocked/failed parts in the README rather than fixing them here.
-- [ ] **Step 6:** Commit: `feat(scraper): run loop, history and seed catalog` (include the generated `data/`).
+- [ ] **Step 4:** Write `catalog.json`: ~100 parts, at least 8 per builder slot plus a few `prebuilt`, with accurate brand/model/specs. `refs` stay `[]` unless an ID is verified — never guess a SKU/ASIN/item ID; `npm run find-refs` fills them once keys exist. IDs are kebab-case `brand-model` (e.g. `amd-ryzen-7-9800x3d`). Spec keys: cpu `cores, threads, baseClock, boostClock, socket, tdp`; gpu `memory, lengthMm, tdp`; ram `capacity, type, speed, modules`; storage `capacity, interface, formFactor`; psu `wattage, efficiency, modular`; motherboard `socket, chipset, formFactor`; case `formFactor, maxGpuLengthMm`; cooler `type, heightMm`.
+- [ ] **Step 5:** Run tests — PASS. Run `npm run scrape` with no keys: exits 0, writes `data/index.json` with every catalog part (null prices) and `data/parts/*.json`. The live smoke with real keys is the user's step after they get keys (README).
+- [ ] **Step 6:** Commit: `feat(scraper): run loop, history, find-refs and seed catalog` (include the generated `data/`).
 
 ---
 
@@ -242,7 +239,7 @@ expect(toOffer({ ...base, retailer: 'newegg', price: null }, 't')).toBeNull();
 - Produces: the Pages site `https://<owner>.github.io/pc-part-tracker/`, serving the app with data at `./data/`.
 
 - [ ] **Step 1:** `pages.yml`: triggers `push` (branch `main`, paths `app/**`, `shared/**`), `workflow_dispatch`, `workflow_call`. Top-level `concurrency: { group: pages, cancel-in-progress: false }` so two deploys never overlap. Checkout with `ref: main` (so a call right after a data commit sees the new data); in `app/`: `npm ci && npx vitest run && npm run build`; copy `data/` to `app/dist/data/`; deploy with `actions/upload-pages-artifact` + `actions/deploy-pages` (permissions `pages: write`, `id-token: write`).
-- [ ] **Step 2:** `scrape.yml`: `schedule: - cron: '17 */6 * * *'` plus `workflow_dispatch`. Job `scrape` (`permissions: { contents: write }`), separate steps in `scraper/`: `npm ci`, `npx vitest run`, then `npm run scrape` — the Amazon/eBay secrets go in `env:` on the `npm run scrape` step only, never on the install step (install scripts must not see them). Commit `data/` as `github-actions[bot]` with message `chore(data): scrape <ISO timestamp>` only when `git status --porcelain data` is non-empty; then `git pull --rebase origin main && git push` (survives a push to `main` during the run). Job `deploy`: `needs: scrape`, `permissions: { pages: write, id-token: write }` (a called workflow only gets what the caller grants), `uses: ./.github/workflows/pages.yml`. (Pushes made with `GITHUB_TOKEN` don't trigger `push` workflows, hence the explicit call.)
+- [ ] **Step 2:** `scrape.yml`: `schedule: - cron: '17 */6 * * *'` plus `workflow_dispatch`. Job `scrape` (`permissions: { contents: write }`), separate steps in `scraper/`: `npm ci`, `npx vitest run`, then `npm run scrape` — the Best Buy/Amazon/eBay secrets go in `env:` on the `npm run scrape` step only, never on the install step (install scripts must not see them). Commit `data/` as `github-actions[bot]` with message `chore(data): scrape <ISO timestamp>` only when `git status --porcelain data` is non-empty; then `git pull --rebase origin main && git push` (survives a push to `main` during the run). Job `deploy`: `needs: scrape`, `permissions: { pages: write, id-token: write }` (a called workflow only gets what the caller grants), `uses: ./.github/workflows/pages.yml`. (Pushes made with `GITHUB_TOKEN` don't trigger `push` workflows, hence the explicit call.)
 - [ ] **Step 3:** Verify: `actionlint` reports no errors.
 - [ ] **Step 4:** Commit: `ci: scheduled scrape and Pages deploy`.
 
