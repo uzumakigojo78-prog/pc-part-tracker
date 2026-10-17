@@ -56,12 +56,24 @@ export function exportBackup(
   const watchRows = watch.map((x) => [x.partId, x.model, x.addedAt, x.priceWhenAdded, x.targetPrice])
 
   const buildRows: (string | number | null)[][] = []
-  for (const build of [...b].sort((x, y) => byStr(x.name, y.name))) {
-    for (const slot of SLOTS) {
+  const sortedBuilds = [...b].sort((x, y) => byStr(x.name, y.name))
+  const used = new Set(sortedBuilds.map((x) => x.name))
+  const claimed = new Set<string>()
+  for (const build of sortedBuilds) {
+    let name = build.name
+    if (claimed.has(name)) {
+      let k = 2
+      while (used.has(`${build.name} (${k})`) || claimed.has(`${build.name} (${k})`)) k++
+      name = `${build.name} (${k})`
+    }
+    claimed.add(name)
+    const filled = SLOTS.filter((slot) => build.slots[slot])
+    if (filled.length === 0) { buildRows.push([name, '', '', '', null]); continue }
+    for (const slot of filled) {
       const partId = build.slots[slot]
       if (!partId) continue
       const e = index.get(partId)
-      buildRows.push([build.name, slot, partId, e?.model ?? '', e?.lowestPrice ?? null])
+      buildRows.push([name, slot, partId, e?.model ?? '', e?.lowestPrice ?? null])
     }
   }
 
@@ -123,6 +135,7 @@ export function parseBackup(watchlistCsv: string, buildsCsv: string): ParsedBack
     errors.push(`builds.csv header must be: ${BUILD_HEADER.join(',')}`)
   } else {
     const byName = new Map<string, Build>()
+    const state = new Map<string, { sentinel: boolean; slots: boolean }>()
     bRows.slice(1).forEach((r, i) => {
       const n = i + 2
       if (r.length === 1 && r[0] === '') return
@@ -131,9 +144,25 @@ export function parseBackup(watchlistCsv: string, buildsCsv: string): ParsedBack
       const [name, slot, partId] = r
       let ok = true
       if (!name) { bad('buildName is empty'); ok = false }
+      const st = state.get(name) ?? { sentinel: false, slots: false }
+      if (name && slot === '') {
+        // empty-build sentinel: slot and partId both empty
+        if (partId) return bad('empty slot with a partId')
+        if (st.sentinel || st.slots) return bad(`empty-build row for "${name}" mixed with other rows`)
+        st.sentinel = true
+        state.set(name, st)
+        if (!byName.has(name)) {
+          const nb: Build = { buildId: crypto.randomUUID(), name, slots: {}, updatedAt: new Date().toISOString() }
+          byName.set(name, nb); builds.push(nb)
+        }
+        return
+      }
       if (!(SLOTS as readonly string[]).includes(slot)) { bad(`unknown slot "${slot}"`); ok = false }
       if (!partId) { bad('partId is empty'); ok = false }
       if (!ok) return
+      if (st.sentinel) return bad(`slot row for "${name}" mixed with empty-build row`)
+      st.slots = true
+      state.set(name, st)
       let build = byName.get(name)
       if (!build) {
         build = { buildId: crypto.randomUUID(), name, slots: {}, updatedAt: new Date().toISOString() }

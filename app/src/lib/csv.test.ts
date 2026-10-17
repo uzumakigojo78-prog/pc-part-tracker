@@ -97,3 +97,42 @@ describe('parseBackup errors', () => {
     if (!r.ok) expect(r.errors.length).toBeGreaterThanOrEqual(3)
   })
 })
+
+describe('builds edge cases', () => {
+  const BH = 'buildName,slot,partId,model,price'
+  const H = 'partId,model,addedAt,priceWhenAdded,targetPrice\r\n'
+  it('duplicate build names get unique suffixes and round-trip', () => {
+    const bs: Build[] = [
+      { buildId: '1', name: 'Gaming', slots: { cpu: 'a' }, updatedAt: 'x' },
+      { buildId: '2', name: 'Gaming', slots: { cpu: 'b' }, updatedAt: 'x' },
+      { buildId: '3', name: 'Gaming (2)', slots: { cpu: 'c' }, updatedAt: 'x' },
+    ]
+    const out = exportBackup([], bs, new Map(), {})
+    const r = parseBackup(H, out['builds.csv'])
+    expect(r.ok).toBe(true)
+    if (!r.ok) return
+    expect(r.builds.map((x) => x.name).sort()).toEqual(['Gaming', 'Gaming (2)', 'Gaming (3)'])
+    expect(r.builds.find((x) => x.name === 'Gaming (3)')?.slots).toEqual({ cpu: 'b' })
+  })
+  it('two Gaming builds become Gaming and Gaming (2)', () => {
+    const bs: Build[] = [
+      { buildId: '1', name: 'Gaming', slots: { cpu: 'a' }, updatedAt: 'x' },
+      { buildId: '2', name: 'Gaming', slots: { cpu: 'b' }, updatedAt: 'x' },
+    ]
+    const r = parseBackup(H, exportBackup([], bs, new Map(), {})['builds.csv'])
+    expect(r.ok && r.builds.map((x) => [x.name, x.slots])).toEqual([['Gaming', { cpu: 'a' }], ['Gaming (2)', { cpu: 'b' }]])
+  })
+  it('empty build round-trips', () => {
+    const out = exportBackup([], [{ buildId: '1', name: 'Empty', slots: {}, updatedAt: 'x' }], new Map(), {})
+    expect(parseCsv(out['builds.csv'])[1]).toEqual(['Empty', '', '', '', ''])
+    const r = parseBackup(H, out['builds.csv'])
+    expect(r.ok && r.builds.map((x) => [x.name, x.slots])).toEqual([['Empty', {}]])
+  })
+  it('sentinel mixed with a slot row is rejected, either order', () => {
+    expect(parseBackup(H, `${BH}\r\nE,,,,\r\nE,cpu,a,,\r\n`).ok).toBe(false)
+    expect(parseBackup(H, `${BH}\r\nE,cpu,a,,\r\nE,,,,\r\n`).ok).toBe(false)
+  })
+  it('empty partId on a normal row is rejected', () => {
+    expect(parseBackup(H, `${BH}\r\nE,cpu,,,\r\n`).ok).toBe(false)
+  })
+})
