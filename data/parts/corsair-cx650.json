@@ -1,0 +1,13 @@
+{
+  "id": "corsair-cx650",
+  "category": "psu",
+  "brand": "Corsair",
+  "model": "CX650",
+  "specs": {
+    "wattage": "650 W",
+    "efficiency": "80+ Bronze",
+    "modular": "Non-modular"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

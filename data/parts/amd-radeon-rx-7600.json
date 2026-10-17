@@ -1,0 +1,12 @@
+{
+  "id": "amd-radeon-rx-7600",
+  "category": "gpu",
+  "brand": "AMD",
+  "model": "Radeon RX 7600",
+  "specs": {
+    "memory": "8 GB",
+    "tdp": "165 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

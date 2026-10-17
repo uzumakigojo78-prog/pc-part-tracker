@@ -1,0 +1,13 @@
+{
+  "id": "asus-rog-strix-x870e-e-gaming-wifi",
+  "category": "motherboard",
+  "brand": "ASUS",
+  "model": "ROG Strix X870E-E Gaming WiFi",
+  "specs": {
+    "socket": "AM5",
+    "chipset": "X870E",
+    "formFactor": "ATX"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

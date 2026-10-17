@@ -1,0 +1,12 @@
+{
+  "id": "nvidia-geforce-rtx-5090",
+  "category": "gpu",
+  "brand": "NVIDIA",
+  "model": "GeForce RTX 5090",
+  "specs": {
+    "memory": "32 GB",
+    "tdp": "575 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "crucial-p3-plus-1tb",
+  "category": "storage",
+  "brand": "Crucial",
+  "model": "P3 Plus 1TB",
+  "specs": {
+    "capacity": "1 TB",
+    "interface": "NVMe PCIe 4.0 x4",
+    "formFactor": "M.2 2280"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

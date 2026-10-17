@@ -1,0 +1,13 @@
+{
+  "id": "msi-mag-z890-tomahawk-wifi",
+  "category": "motherboard",
+  "brand": "MSI",
+  "model": "MAG Z890 Tomahawk WiFi",
+  "specs": {
+    "socket": "LGA1851",
+    "chipset": "Z890",
+    "formFactor": "ATX"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "msi-mag-a850gl-pcie5",
+  "category": "psu",
+  "brand": "MSI",
+  "model": "MAG A850GL PCIE5",
+  "specs": {
+    "wattage": "850 W",
+    "efficiency": "80+ Gold",
+    "modular": "Fully modular"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

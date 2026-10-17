@@ -1,0 +1,12 @@
+{
+  "id": "amd-radeon-rx-7800-xt",
+  "category": "gpu",
+  "brand": "AMD",
+  "model": "Radeon RX 7800 XT",
+  "specs": {
+    "memory": "16 GB",
+    "tdp": "263 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

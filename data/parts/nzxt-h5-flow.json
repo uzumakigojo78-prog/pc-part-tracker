@@ -1,0 +1,12 @@
+{
+  "id": "nzxt-h5-flow",
+  "category": "case",
+  "brand": "NZXT",
+  "model": "H5 Flow",
+  "specs": {
+    "formFactor": "ATX Mid Tower",
+    "maxGpuLengthMm": "365"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

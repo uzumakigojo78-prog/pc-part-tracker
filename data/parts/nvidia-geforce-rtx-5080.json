@@ -1,0 +1,12 @@
+{
+  "id": "nvidia-geforce-rtx-5080",
+  "category": "gpu",
+  "brand": "NVIDIA",
+  "model": "GeForce RTX 5080",
+  "specs": {
+    "memory": "16 GB",
+    "tdp": "360 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

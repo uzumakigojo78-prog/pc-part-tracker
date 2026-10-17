@@ -1,0 +1,13 @@
+{
+  "id": "samsung-990-pro-1tb",
+  "category": "storage",
+  "brand": "Samsung",
+  "model": "990 Pro 1TB",
+  "specs": {
+    "capacity": "1 TB",
+    "interface": "NVMe PCIe 4.0 x4",
+    "formFactor": "M.2 2280"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

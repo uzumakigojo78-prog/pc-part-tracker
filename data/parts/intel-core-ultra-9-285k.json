@@ -1,0 +1,16 @@
+{
+  "id": "intel-core-ultra-9-285k",
+  "category": "cpu",
+  "brand": "Intel",
+  "model": "Core Ultra 9 285K",
+  "specs": {
+    "cores": "24",
+    "threads": "24",
+    "baseClock": "3.7 GHz",
+    "boostClock": "5.7 GHz",
+    "socket": "LGA1851",
+    "tdp": "125 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "amd-ryzen-5-9600x",
+  "category": "cpu",
+  "brand": "AMD",
+  "model": "Ryzen 5 9600X",
+  "specs": {
+    "cores": "6",
+    "threads": "12",
+    "baseClock": "3.9 GHz",
+    "boostClock": "5.4 GHz",
+    "socket": "AM5",
+    "tdp": "65 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

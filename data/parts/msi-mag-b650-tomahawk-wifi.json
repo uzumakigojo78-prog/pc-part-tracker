@@ -1,0 +1,13 @@
+{
+  "id": "msi-mag-b650-tomahawk-wifi",
+  "category": "motherboard",
+  "brand": "MSI",
+  "model": "MAG B650 Tomahawk WiFi",
+  "specs": {
+    "socket": "AM5",
+    "chipset": "B650",
+    "formFactor": "ATX"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

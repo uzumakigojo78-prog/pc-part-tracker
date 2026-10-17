@@ -1,0 +1,13 @@
+{
+  "id": "crucial-t705-2tb",
+  "category": "storage",
+  "brand": "Crucial",
+  "model": "T705 2TB",
+  "specs": {
+    "capacity": "2 TB",
+    "interface": "NVMe PCIe 5.0 x4",
+    "formFactor": "M.2 2280"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "nvidia-geforce-rtx-5070",
+  "category": "gpu",
+  "brand": "NVIDIA",
+  "model": "GeForce RTX 5070",
+  "specs": {
+    "memory": "12 GB",
+    "tdp": "250 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

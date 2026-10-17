@@ -1,0 +1,12 @@
+{
+  "id": "amd-radeon-rx-9070-xt",
+  "category": "gpu",
+  "brand": "AMD",
+  "model": "Radeon RX 9070 XT",
+  "specs": {
+    "memory": "16 GB",
+    "tdp": "304 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

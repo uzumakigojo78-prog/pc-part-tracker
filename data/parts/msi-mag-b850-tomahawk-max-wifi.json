@@ -1,0 +1,13 @@
+{
+  "id": "msi-mag-b850-tomahawk-max-wifi",
+  "category": "motherboard",
+  "brand": "MSI",
+  "model": "MAG B850 Tomahawk Max WiFi",
+  "specs": {
+    "socket": "AM5",
+    "chipset": "B850",
+    "formFactor": "ATX"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

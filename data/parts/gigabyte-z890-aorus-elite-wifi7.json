@@ -1,0 +1,13 @@
+{
+  "id": "gigabyte-z890-aorus-elite-wifi7",
+  "category": "motherboard",
+  "brand": "Gigabyte",
+  "model": "Z890 Aorus Elite WiFi7",
+  "specs": {
+    "socket": "LGA1851",
+    "chipset": "Z890",
+    "formFactor": "ATX"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

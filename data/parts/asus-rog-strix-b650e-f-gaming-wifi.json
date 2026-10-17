@@ -1,0 +1,13 @@
+{
+  "id": "asus-rog-strix-b650e-f-gaming-wifi",
+  "category": "motherboard",
+  "brand": "ASUS",
+  "model": "ROG Strix B650E-F Gaming WiFi",
+  "specs": {
+    "socket": "AM5",
+    "chipset": "B650E",
+    "formFactor": "ATX"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

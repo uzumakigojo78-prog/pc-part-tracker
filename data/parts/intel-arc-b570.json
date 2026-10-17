@@ -1,0 +1,12 @@
+{
+  "id": "intel-arc-b570",
+  "category": "gpu",
+  "brand": "Intel",
+  "model": "Arc B570",
+  "specs": {
+    "memory": "10 GB",
+    "tdp": "150 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

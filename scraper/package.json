@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "scrape": "tsx src/run.ts"
+    "scrape": "tsx src/run.ts",
+    "find-refs": "tsx src/find-refs.ts"
   },
   "dependencies": {
     "aws4": "^1.13.2"

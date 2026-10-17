@@ -1,0 +1,16 @@
+{
+  "id": "intel-core-i5-14600k",
+  "category": "cpu",
+  "brand": "Intel",
+  "model": "Core i5-14600K",
+  "specs": {
+    "cores": "14",
+    "threads": "20",
+    "baseClock": "3.5 GHz",
+    "boostClock": "5.3 GHz",
+    "socket": "LGA1700",
+    "tdp": "125 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

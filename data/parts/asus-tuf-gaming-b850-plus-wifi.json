@@ -1,0 +1,13 @@
+{
+  "id": "asus-tuf-gaming-b850-plus-wifi",
+  "category": "motherboard",
+  "brand": "ASUS",
+  "model": "TUF Gaming B850-Plus WiFi",
+  "specs": {
+    "socket": "AM5",
+    "chipset": "B850",
+    "formFactor": "ATX"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

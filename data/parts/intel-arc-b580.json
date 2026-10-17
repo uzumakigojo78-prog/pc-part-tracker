@@ -1,0 +1,12 @@
+{
+  "id": "intel-arc-b580",
+  "category": "gpu",
+  "brand": "Intel",
+  "model": "Arc B580",
+  "specs": {
+    "memory": "12 GB",
+    "tdp": "190 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

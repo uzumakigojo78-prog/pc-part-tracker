@@ -1,0 +1,12 @@
+{
+  "id": "nvidia-geforce-rtx-5060-ti-16gb",
+  "category": "gpu",
+  "brand": "NVIDIA",
+  "model": "GeForce RTX 5060 Ti 16GB",
+  "specs": {
+    "memory": "16 GB",
+    "tdp": "180 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "nvidia-geforce-rtx-4070-super",
+  "category": "gpu",
+  "brand": "NVIDIA",
+  "model": "GeForce RTX 4070 Super",
+  "specs": {
+    "memory": "12 GB",
+    "tdp": "220 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

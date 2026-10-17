@@ -1,0 +1,13 @@
+{
+  "id": "gigabyte-b650-aorus-elite-ax",
+  "category": "motherboard",
+  "brand": "Gigabyte",
+  "model": "B650 Aorus Elite AX",
+  "specs": {
+    "socket": "AM5",
+    "chipset": "B650",
+    "formFactor": "ATX"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

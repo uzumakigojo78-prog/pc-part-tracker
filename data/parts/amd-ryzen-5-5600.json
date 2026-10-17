@@ -1,0 +1,16 @@
+{
+  "id": "amd-ryzen-5-5600",
+  "category": "cpu",
+  "brand": "AMD",
+  "model": "Ryzen 5 5600",
+  "specs": {
+    "cores": "6",
+    "threads": "12",
+    "baseClock": "3.5 GHz",
+    "boostClock": "4.4 GHz",
+    "socket": "AM4",
+    "tdp": "65 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

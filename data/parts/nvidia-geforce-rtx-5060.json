@@ -1,0 +1,12 @@
+{
+  "id": "nvidia-geforce-rtx-5060",
+  "category": "gpu",
+  "brand": "NVIDIA",
+  "model": "GeForce RTX 5060",
+  "specs": {
+    "memory": "8 GB",
+    "tdp": "145 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

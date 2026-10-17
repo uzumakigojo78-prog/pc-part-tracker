@@ -1,0 +1,13 @@
+{
+  "id": "asus-rog-strix-z890-e-gaming-wifi",
+  "category": "motherboard",
+  "brand": "ASUS",
+  "model": "ROG Strix Z890-E Gaming WiFi",
+  "specs": {
+    "socket": "LGA1851",
+    "chipset": "Z890",
+    "formFactor": "ATX"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}

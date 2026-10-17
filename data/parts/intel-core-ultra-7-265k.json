@@ -1,0 +1,16 @@
+{
+  "id": "intel-core-ultra-7-265k",
+  "category": "cpu",
+  "brand": "Intel",
+  "model": "Core Ultra 7 265K",
+  "specs": {
+    "cores": "20",
+    "threads": "20",
+    "baseClock": "3.9 GHz",
+    "boostClock": "5.5 GHz",
+    "socket": "LGA1851",
+    "tdp": "125 W"
+  },
+  "offers": [],
+  "updatedAt": "2026-10-17T02:05:28.319Z"
+}
