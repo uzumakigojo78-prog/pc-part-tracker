@@ -96,3 +96,5 @@ tbody th { font-weight: 500; color: var(--muted); width: 40%; }
 .sheet { width: 100%; max-width: 520px; max-height: 80vh; overflow: auto; background: var(--bg); padding: 16px; border-radius: 16px 16px 0 0; display: grid; gap: 12px; }
 .sheet h2 { margin: 0; }
 @media (min-width: 768px) { .backdrop { align-items: center; } .sheet { border-radius: 16px; } }
+
+.slot-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }

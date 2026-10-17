@@ -16,3 +16,11 @@ export function buildTotal(b: Build, index: Map<string, IndexEntry>): { total: n
   }
   return { total: Math.round(total * 100) / 100, missing }
 }
+
+/** "Build N" with N = count+1, bumped past any existing name. */
+export function nextBuildName(existing: { name: string }[]): string {
+  const names = new Set(existing.map(b => b.name))
+  let n = existing.length + 1
+  while (names.has(`Build ${n}`)) n++
+  return `Build ${n}`
+}

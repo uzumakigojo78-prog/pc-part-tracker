@@ -4,7 +4,7 @@ import type { HistoryPoint, PartDetail } from '../../../../shared/types'
 import { fetchJson } from '../../lib/data'
 import { builds, onChange, watchlist } from '../../lib/db'
 import type { Build, WatchItem } from '../../lib/db'
-import { SLOTS } from '../../lib/build'
+import { SLOTS, nextBuildName } from '../../lib/build'
 import type { Slot } from '../../lib/build'
 import { CATEGORY_NAMES, RETAILER_NAMES, formatPrice, specLabel, specValue } from '../../lib/format'
 import { useIndex } from '../../lib/useIndex'
@@ -143,10 +143,7 @@ function AddToBuildSheet({ partId, slot, onClose, onDone }: {
     onDone(`Added to ${b.name}.`)
   }
   async function newBuild() {
-    const names = new Set(list.map(b => b.name))
-    let n = list.length + 1
-    while (names.has(`Build ${n}`)) n++
-    const b: Build = { buildId: crypto.randomUUID(), name: `Build ${n}`, slots: { [slot]: partId }, updatedAt: new Date().toISOString() }
+    const b: Build = { buildId: crypto.randomUUID(), name: nextBuildName(list), slots: { [slot]: partId }, updatedAt: new Date().toISOString() }
     await builds.put(b)
     navigate(`/build/${b.buildId}`)
   }

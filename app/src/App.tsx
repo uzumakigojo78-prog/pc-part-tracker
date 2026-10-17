@@ -7,6 +7,7 @@ import { IndexContext } from './lib/useIndex'
 import type { IndexState } from './lib/useIndex'
 import SearchPage from './features/search/SearchPage'
 import PartPage from './features/search/PartPage'
+import BuilderPage from './features/builder/BuilderPage'
 
 export function IndexProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<Omit<IndexState, 'refresh' | 'byId'>>({ index: [], fetchedAt: null, stale: false, error: null, loading: true })
@@ -60,8 +61,8 @@ export default function App() {
             <Route path="/" element={<Navigate to="/search" replace />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/part/:id" element={<PartPage />} />
-            <Route path="/build" element={<Soon title="Build" />} />
-            <Route path="/build/:buildId" element={<Soon title="Build" />} />
+            <Route path="/build" element={<BuilderPage />} />
+            <Route path="/build/:buildId" element={<BuilderPage />} />
             <Route path="/watchlist" element={<Soon title="Watchlist" />} />
             <Route path="/settings" element={<Soon title="Settings" />} />
             <Route path="*" element={<Navigate to="/search" replace />} />
