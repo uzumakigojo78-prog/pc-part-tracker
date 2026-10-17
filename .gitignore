@@ -5,3 +5,4 @@ app/android/app/build
 .env*
 .superpowers/
 scraper/catalog.candidates.json
+app/public/data
