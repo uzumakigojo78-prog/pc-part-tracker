@@ -1,0 +1,3 @@
+{ "ItemsResult": { "Items": [ { "ASIN": "B0BTZB7F88", "DetailPageURL": "https://www.amazon.com/dp/B0BTZB7F88?tag=tracker-20",
+  "CustomerReviews": { "Count": 1204, "StarRating": { "Value": 4.7 } },
+  "Offers": { "Listings": [ { "Price": { "Amount": 539.0, "Currency": "USD" }, "Availability": { "Type": "Now", "Message": "In Stock" } } ] } } ] } }
