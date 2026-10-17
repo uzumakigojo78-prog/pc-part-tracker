@@ -46,13 +46,15 @@ export async function run(opts: {
     let entryAt = updatedAt;
     try {
       const partPath = join(dataDir, 'parts', `${part.id}.json`);
+      let kept = false;
       if (partFailures > 0 && offers.length === 0) {
-        // Every fetch threw: keep the previous detail file (and index from it) rather than blanking offers.
+        // Every fetch threw: keep the previous detail file (and index from it) if it is readable.
         try {
           const prev: PartDetail = JSON.parse(await readFile(partPath, 'utf8'));
-          offers = prev.offers; entryAt = prev.updatedAt;
-        } catch { /* no previous file */ }
-      } else {
+          if (Array.isArray(prev.offers)) { offers = prev.offers; entryAt = prev.updatedAt; kept = true; }
+        } catch { /* missing or corrupt: fall through to a normal write */ }
+      }
+      if (!kept) {
         const { refs: _refs, ...rest } = part;
         const detail: PartDetail = { ...rest, offers, updatedAt };
         await writeJson(partPath, detail);

@@ -59,3 +59,13 @@ describe('findRefs query words', () => {
     expect(terms).not.toMatch(/[()!]/);
   });
 });
+
+describe('findRefs empty words', () => {
+  it('skips a part with no alphanumeric tokens', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'fr-'));
+    const urls: string[] = [];
+    const f = (async (url: string) => { urls.push(url); return new Response('{"products":[]}'); }) as unknown as typeof fetch;
+    await findRefs({ catalog: [p('x', '!!', '()')], env: { BESTBUY_API_KEY: 'k' }, fetch: f, outPath: join(dir, 'c.json') });
+    expect(urls).toEqual([]);
+  });
+});

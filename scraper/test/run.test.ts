@@ -104,6 +104,32 @@ describe('run robustness', () => {
   });
 });
 
+describe('run keep-previous edge cases', () => {
+  const thrower = adapter('bestbuy', true, async () => { throw new Error('x'); });
+  const ref1 = [{ retailer: 'bestbuy' as const, productId: '1' }];
+  it('first run with a throwing adapter still writes offers: []', async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), 'run-'));
+    await run({ catalog: [part('a', ref1)], adapters: [thrower], dataDir, now });
+    expect((await rj(join(dataDir, 'parts/a.json'))).offers).toEqual([]);
+  });
+  it('corrupt previous parts file is rewritten with offers: []', async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), 'run-'));
+    await mkdir(join(dataDir, 'parts'), { recursive: true });
+    await writeFile(join(dataDir, 'parts/a.json'), '{broken');
+    await run({ catalog: [part('a', ref1)], adapters: [thrower], dataDir, now });
+    expect((await rj(join(dataDir, 'parts/a.json'))).offers).toEqual([]);
+  });
+  it('mixed throw + null with no offers keeps the previous file', async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), 'run-'));
+    await mkdir(join(dataDir, 'parts'), { recursive: true });
+    const before = JSON.stringify({ id: 'a', offers: [], updatedAt: 'old' });
+    await writeFile(join(dataDir, 'parts/a.json'), before);
+    await run({ catalog: [part('a', [...ref1, { retailer: 'amazon', productId: '2' }])],
+      adapters: [thrower, adapter('amazon', true, async () => null)], dataDir, now });
+    expect(await readFile(join(dataDir, 'parts/a.json'), 'utf8')).toBe(before);
+  });
+});
+
 describe('exitCode', () => {
   it('applies the rule', () => {
     expect(exitCode({ succeeded: 0, failed: 1, skipped: 0 })).toBe(1);
