@@ -10,7 +10,8 @@ import type { IndexState } from '../../lib/useIndex'
 import { formatPrice } from '../../lib/format'
 import BuilderPage from './BuilderPage'
 
-vi.mock('./BuildScene', () => ({ default: () => <div>scene</div> }))
+const sceneFails = vi.hoisted(() => ({ on: false }))
+vi.mock('./BuildScene', () => ({ default: () => { if (sceneFails.on) throw new Error('no webgl'); return <div>scene</div> } }))
 vi.mock('../../lib/data', () => ({ fetchJson: vi.fn(async () => { throw new Error('offline') }) }))
 
 const e = (id: string, category: IndexEntry['category'], lowestPrice: number | null): IndexEntry =>
@@ -31,7 +32,8 @@ function renderAt(url: string) {
   )
 }
 
-beforeEach(async () => { await resetDbForTests() })
+beforeEach(async () => {
+  sceneFails.on = false; await resetDbForTests() })
 afterEach(cleanup)
 
 describe('BuilderPage', () => {
@@ -80,5 +82,14 @@ describe('BuilderPage', () => {
     expect((await builds.all()).length).toBe(1)
     await userEvent.click(screen.getByRole('button', { name: /Delete Mine/ }))
     await waitFor(async () => expect((await builds.all()).length).toBe(0))
+  })
+
+  it('keeps the slot list when the 3D scene throws', async () => {
+    sceneFails.on = true
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    await builds.put({ buildId: 'b1', name: 'Mine', slots: { cpu: 'cpu1' }, updatedAt: '' })
+    renderAt('/build/b1')
+    expect(await screen.findByText('3D preview unavailable')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Remove CPU/ })).toBeTruthy()
   })
 })

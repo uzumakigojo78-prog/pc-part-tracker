@@ -9,7 +9,8 @@ const COLORS: Record<string, string> = {
 
 export default function BuildScene({ boxes }: { boxes: Box[] }) {
   return (
-    <Canvas aria-label="3D preview of build" camera={{ position: [50, 25, 70], fov: 40 }} style={{ height: 320, touchAction: 'none' }}>
+    <div role="img" aria-label="3D preview of build">
+    <Canvas camera={{ position: [50, 25, 70], fov: 40 }} style={{ height: 320, touchAction: 'none' }}>
       <ambientLight intensity={0.8} />
       <directionalLight position={[30, 40, 50]} intensity={1.2} />
       {boxes.map((b, i) => (
@@ -29,5 +30,6 @@ export default function BuildScene({ boxes }: { boxes: Box[] }) {
       ))}
       <OrbitControls enablePan={false} />
     </Canvas>
+    </div>
   )
 }

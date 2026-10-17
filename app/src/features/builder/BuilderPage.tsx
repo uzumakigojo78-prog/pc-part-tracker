@@ -1,4 +1,5 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
+import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { PartDetail } from '../../../../shared/types'
 import { SLOTS, buildTotal, nextBuildName } from '../../lib/build'
@@ -11,6 +12,13 @@ import { useIndex } from '../../lib/useIndex'
 import { layoutFor } from './layout'
 
 const BuildScene = lazy(() => import('./BuildScene'))
+
+// A failed chunk import or missing WebGL must not take the slot list down with it.
+class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() { return { failed: true } }
+  render() { return this.state.failed ? <p className="muted">3D preview unavailable</p> : this.props.children }
+}
 
 function useBuilds() {
   const [list, setList] = useState<Build[] | null>(null)
@@ -26,7 +34,7 @@ export default function BuilderPage() {
   if (!buildId) return <BuildList list={list} />
   const build = list.find(b => b.buildId === buildId)
   if (!build) return <div className="page"><Link to="/build">← All builds</Link><h1>Build not found</h1></div>
-  return <Editor build={build} />
+  return <Editor key={build.buildId} build={build} />
 }
 
 function BuildList({ list }: { list: Build[] }) {
@@ -116,9 +124,11 @@ function Editor({ build }: { build: Build }) {
       )}
       {error && <p role="alert" className="banner">{error}</p>}
 
-      <Suspense fallback={<p className="muted">Loading 3D preview…</p>}>
-        <BuildScene boxes={boxes} />
-      </Suspense>
+      <SceneBoundary>
+        <Suspense fallback={<p className="muted">Loading 3D preview…</p>}>
+          <BuildScene boxes={boxes} />
+        </Suspense>
+      </SceneBoundary>
 
       <ul className="list">
         {SLOTS.map(slot => {

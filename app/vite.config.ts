@@ -9,8 +9,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Precache the app shell only. No runtimeCaching: fetchJson owns data caching.
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png}'], globIgnores: ['data/**'], navigateFallbackDenylist: [/\/data\//] },
+      // Precache the app shell only; fetchJson owns data caching. The lazy 3D chunk is cached on first use instead.
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png}'],
+        globIgnores: ['data/**', '**/BuildScene-*.js'],
+        navigateFallbackDenylist: [/\/data\//],
+        runtimeCaching: [{ urlPattern: /\/assets\/BuildScene-[^/]*\.js$/, handler: 'CacheFirst', options: { cacheName: 'scene-chunk' } }],
+      },
       manifest: {
         name: 'PC Part Tracker', short_name: 'PC Parts', display: 'standalone',
         start_url: './', scope: './', background_color: '#0f1115', theme_color: '#2456d6',
